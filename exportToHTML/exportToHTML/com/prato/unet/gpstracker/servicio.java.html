@@ -1,0 +1,235 @@
+<html>
+<head>
+<title>servicio.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.ln { color: #999999; font-weight: normal; font-style: normal; }
+.s0 { color: rgb(0,0,128); font-weight: bold; }
+.s1 { color: rgb(0,0,0); }
+.s2 { color: rgb(0,128,0); font-weight: bold; }
+.s3 { color: rgb(0,0,255); }
+</style>
+</head>
+<BODY BGCOLOR="#ffffff">
+<TABLE CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<TR><TD><CENTER>
+<FONT FACE="Arial, Helvetica" COLOR="#000000">
+servicio.java</FONT>
+</center></TD></TR></TABLE>
+<pre>
+<span class="s0">package </span><span class="s1">com.prato.unet.gpstracker; 
+ 
+</span><span class="s0">import </span><span class="s1">android.app.Service; 
+</span><span class="s0">import </span><span class="s1">android.content.Intent; 
+</span><span class="s0">import </span><span class="s1">android.content.SharedPreferences; 
+</span><span class="s0">import </span><span class="s1">android.content.SharedPreferences.Editor; 
+</span><span class="s0">import </span><span class="s1">android.location.Location; 
+</span><span class="s0">import </span><span class="s1">android.net.ConnectivityManager; 
+</span><span class="s0">import </span><span class="s1">android.net.NetworkInfo; 
+</span><span class="s0">import </span><span class="s1">android.os.Bundle; 
+</span><span class="s0">import </span><span class="s1">android.os.IBinder; 
+</span><span class="s0">import </span><span class="s1">android.support.v4.app.ActivityCompat; 
+</span><span class="s0">import </span><span class="s1">android.util.Log; 
+</span><span class="s0">import </span><span class="s1">android.widget.Toast; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.ConnectionResult; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.GoogleApiAvailability; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.api.GoogleApiClient; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.api.GoogleApiClient.Builder; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationListener; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationRequest; 
+</span><span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationServices; 
+</span><span class="s0">import </span><span class="s1">java.io.IOException; 
+</span><span class="s0">import </span><span class="s1">java.io.InputStream; 
+</span><span class="s0">import </span><span class="s1">java.io.InputStreamReader; 
+</span><span class="s0">import </span><span class="s1">java.io.UnsupportedEncodingException; 
+</span><span class="s0">import </span><span class="s1">java.net.HttpURLConnection; 
+</span><span class="s0">import </span><span class="s1">java.net.URL; 
+</span><span class="s0">import </span><span class="s1">java.net.URLEncoder; 
+</span><span class="s0">import </span><span class="s1">java.text.SimpleDateFormat; 
+</span><span class="s0">import </span><span class="s1">java.util.Date; 
+</span><span class="s0">import </span><span class="s1">java.util.TimeZone; 
+ 
+</span><span class="s0">public class </span><span class="s1">servicio </span><span class="s0">extends </span><span class="s1">Service </span><span class="s0">implements </span><span class="s1">ConnectionCallbacks, OnConnectionFailedListener, LocationListener { 
+    </span><span class="s0">private static final </span><span class="s1">String TAG = </span><span class="s2">&quot;servicio&quot;</span><span class="s1">; 
+    String current = </span><span class="s2">&quot;&quot;</span><span class="s1">; 
+    String URL = </span><span class="s2">&quot;http://pratowebhoster.hol.es/controlador/reporteAndroid.php&quot;</span><span class="s1">; 
+    </span><span class="s0">private boolean </span><span class="s1">servicioActivo = </span><span class="s0">false</span><span class="s1">; 
+    </span><span class="s0">private </span><span class="s1">LocationRequest locationRequest; 
+    </span><span class="s0">private </span><span class="s1">GoogleApiClient googleApiClient; 
+    </span><span class="s0">float </span><span class="s1">disulti = </span><span class="s3">0.0F</span><span class="s1">; 
+    </span><span class="s0">float </span><span class="s1">distanciaTotal = </span><span class="s3">0.0F</span><span class="s1">; 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onCreate() { 
+        </span><span class="s0">super</span><span class="s1">.onCreate(); 
+        Log.e(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot;Oncreate&quot;</span><span class="s1">); 
+    } 
+    @Override 
+    </span><span class="s0">public int </span><span class="s1">onStartCommand(Intent intent, </span><span class="s0">int </span><span class="s1">flags, </span><span class="s0">int </span><span class="s1">starId) { 
+        </span><span class="s0">if</span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.servicioActivo) { 
+            </span><span class="s0">this</span><span class="s1">.servicioActivo = </span><span class="s0">true</span><span class="s1">; 
+            </span><span class="s0">this</span><span class="s1">.empezarEnviar(); 
+        } 
+ 
+        </span><span class="s0">return  </span><span class="s1">START_NOT_STICKY; 
+    } 
+ 
+    </span><span class="s0">private void </span><span class="s1">empezarEnviar() { 
+        Log.e(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot;Empezar a enviar&quot;</span><span class="s1">); 
+        GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance(); 
+        </span><span class="s0">int </span><span class="s1">result = googleAPI.isGooglePlayServicesAvailable(</span><span class="s0">this</span><span class="s1">); 
+        </span><span class="s0">if</span><span class="s1">(result != </span><span class="s3">0</span><span class="s1">) { 
+            Log.e(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot;servicio Google no disponible&quot;</span><span class="s1">); 
+            Toast.makeText(</span><span class="s0">this</span><span class="s1">.getApplicationContext(), </span><span class="s2">&quot;ServicesGoogle No Disponible&quot;</span><span class="s1">, Toast.LENGTH_SHORT).show(); 
+        } </span><span class="s0">else </span><span class="s1">{ 
+            </span><span class="s0">this</span><span class="s1">.googleApiClient = (</span><span class="s0">new </span><span class="s1">Builder(</span><span class="s0">this</span><span class="s1">)).addApi(LocationServices.API).addConnectionCallbacks(</span><span class="s0">this</span><span class="s1">).addOnConnectionFailedListener(</span><span class="s0">this</span><span class="s1">).build(); 
+            </span><span class="s0">if</span><span class="s1">(!</span><span class="s0">this</span><span class="s1">.googleApiClient.isConnected() || !</span><span class="s0">this</span><span class="s1">.googleApiClient.isConnecting()) { 
+                </span><span class="s0">this</span><span class="s1">.googleApiClient.connect(); 
+            } 
+        } 
+ 
+    } 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onConnected(Bundle bundle) { 
+        Log.d(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot;onConnected&quot;</span><span class="s1">); 
+        </span><span class="s0">this</span><span class="s1">.locationRequest = LocationRequest.create(); 
+        </span><span class="s0">this</span><span class="s1">.locationRequest.setInterval(</span><span class="s3">1000L</span><span class="s1">); 
+        </span><span class="s0">this</span><span class="s1">.locationRequest.setFastestInterval(</span><span class="s3">1000L</span><span class="s1">); 
+        </span><span class="s0">this</span><span class="s1">.locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY); 
+        </span><span class="s0">if</span><span class="s1">(ActivityCompat.checkSelfPermission(</span><span class="s0">this</span><span class="s1">, </span><span class="s2">&quot;android.permission.ACCESS_FINE_LOCATION&quot;</span><span class="s1">) == </span><span class="s3">0 </span><span class="s1">|| ActivityCompat.checkSelfPermission(</span><span class="s0">this</span><span class="s1">, </span><span class="s2">&quot;android.permission.ACCESS_COARSE_LOCATION&quot;</span><span class="s1">) == </span><span class="s3">0</span><span class="s1">) { 
+            LocationServices.FusedLocationApi.requestLocationUpdates(</span><span class="s0">this</span><span class="s1">.googleApiClient, </span><span class="s0">this</span><span class="s1">.locationRequest, </span><span class="s0">this</span><span class="s1">); 
+        } 
+    } 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onLocationChanged(Location location) { 
+        SharedPreferences sharedPreferences = </span><span class="s0">this</span><span class="s1">.getSharedPreferences(</span><span class="s2">&quot;com.prato.unet.gpstracker.prefs&quot;</span><span class="s1">, </span><span class="s3">0</span><span class="s1">); 
+        Editor editor = sharedPreferences.edit(); 
+        Log.d(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot;LocationChanged&quot;</span><span class="s1">); 
+        </span><span class="s0">if</span><span class="s1">(location != </span><span class="s0">null</span><span class="s1">) { 
+            Log.e(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot; accuracy: &quot; </span><span class="s1">+ location.getAccuracy()); 
+            </span><span class="s0">if</span><span class="s1">(location.getAccuracy() &lt; </span><span class="s3">100.0F</span><span class="s1">) { 
+                </span><span class="s0">boolean </span><span class="s1">primeraVezPosicion = sharedPreferences.getBoolean(</span><span class="s2">&quot;primeraVezPosicion&quot;</span><span class="s1">, </span><span class="s0">true</span><span class="s1">); 
+                </span><span class="s0">if</span><span class="s1">(primeraVezPosicion) { 
+                    editor.putBoolean(</span><span class="s2">&quot;primeraVezPosicion&quot;</span><span class="s1">, </span><span class="s0">false</span><span class="s1">); 
+                    </span><span class="s0">this</span><span class="s1">.stopLocationUpdates(); 
+                    </span><span class="s0">this</span><span class="s1">.prepararHttpClient(location); 
+                    editor.apply(); 
+                } </span><span class="s0">else </span><span class="s1">{ 
+                    Location posicionAnterior = </span><span class="s0">new </span><span class="s1">Location(</span><span class="s2">&quot;&quot;</span><span class="s1">); 
+                    posicionAnterior.setLatitude((</span><span class="s0">double</span><span class="s1">)sharedPreferences.getFloat(</span><span class="s2">&quot;latitudAnterior&quot;</span><span class="s1">, </span><span class="s3">0.0F</span><span class="s1">)); 
+                    posicionAnterior.setLongitude((</span><span class="s0">double</span><span class="s1">)sharedPreferences.getFloat(</span><span class="s2">&quot;LongitudAnterior&quot;</span><span class="s1">, </span><span class="s3">0.0F</span><span class="s1">)); 
+                    </span><span class="s0">this</span><span class="s1">.disulti = location.distanceTo(posicionAnterior); 
+                    Log.d(</span><span class="s2">&quot;servicio&quot;</span><span class="s1">, </span><span class="s2">&quot; Distancia &quot; </span><span class="s1">+ </span><span class="s0">this</span><span class="s1">.disulti); 
+                    </span><span class="s0">if</span><span class="s1">(</span><span class="s0">this</span><span class="s1">.disulti &gt;= </span><span class="s3">18.0F</span><span class="s1">) { 
+                        </span><span class="s0">this</span><span class="s1">.distanciaTotal += </span><span class="s0">this</span><span class="s1">.disulti; 
+                        </span><span class="s0">this</span><span class="s1">.stopLocationUpdates(); 
+                        </span><span class="s0">this</span><span class="s1">.prepararHttpClient(location); 
+                        editor.putInt(</span><span class="s2">&quot;reportado&quot;</span><span class="s1">, sharedPreferences.getInt(</span><span class="s2">&quot;reportado&quot;</span><span class="s1">, </span><span class="s3">0</span><span class="s1">) + </span><span class="s3">1</span><span class="s1">); 
+                        editor.apply(); 
+                    } </span><span class="s0">else </span><span class="s1">{ 
+                        editor.putInt(</span><span class="s2">&quot;DisCorta&quot;</span><span class="s1">, sharedPreferences.getInt(</span><span class="s2">&quot;DisCorta&quot;</span><span class="s1">, </span><span class="s3">0</span><span class="s1">) + </span><span class="s3">1</span><span class="s1">); 
+                        editor.apply(); 
+                        Toast.makeText(</span><span class="s0">this</span><span class="s1">, </span><span class="s2">&quot;Poca distancia&quot;</span><span class="s1">, Toast.LENGTH_SHORT).show(); 
+                        </span><span class="s0">this</span><span class="s1">.stopLocationUpdates(); 
+                        </span><span class="s0">this</span><span class="s1">.stopSelf(); 
+                    } 
+                } 
+            } 
+        } 
+ 
+    } 
+ 
+    </span><span class="s0">protected void </span><span class="s1">prepararHttpClient(Location location) { 
+        String fechaGPS = </span><span class="s2">&quot;&quot;</span><span class="s1">; 
+        </span><span class="s0">final </span><span class="s1">SharedPreferences sharedPreferences = </span><span class="s0">this</span><span class="s1">.getSharedPreferences(</span><span class="s2">&quot;com.prato.unet.gpstracker.prefs&quot;</span><span class="s1">, </span><span class="s3">0</span><span class="s1">); 
+        Editor editor = sharedPreferences.edit(); 
+        SimpleDateFormat dateFormat = </span><span class="s0">new </span><span class="s1">SimpleDateFormat(</span><span class="s2">&quot;yyyy-MM-dd HH:mm:ss&quot;</span><span class="s1">); 
+        dateFormat.setTimeZone(TimeZone.getDefault()); 
+        Date fecha = </span><span class="s0">new </span><span class="s1">Date(location.getTime()); 
+ 
+        </span><span class="s0">try </span><span class="s1">{ 
+            fechaGPS = URLEncoder.encode(dateFormat.format(fecha), </span><span class="s2">&quot;UTF-8&quot;</span><span class="s1">); 
+        } </span><span class="s0">catch </span><span class="s1">(UnsupportedEncodingException var19) { 
+            var19.printStackTrace(); 
+        } 
+ 
+        </span><span class="s0">this</span><span class="s1">.distanciaTotal = sharedPreferences.getFloat(</span><span class="s2">&quot;distanciaTotal&quot;</span><span class="s1">, </span><span class="s3">0.0F</span><span class="s1">); 
+        editor.putFloat(</span><span class="s2">&quot;distanciaTotal&quot;</span><span class="s1">, </span><span class="s0">this</span><span class="s1">.distanciaTotal); 
+        editor.putFloat(</span><span class="s2">&quot;latitudAnterior&quot;</span><span class="s1">, (</span><span class="s0">float</span><span class="s1">)location.getLatitude()); 
+        editor.putFloat(</span><span class="s2">&quot;LongitudAnterior&quot;</span><span class="s1">, (</span><span class="s0">float</span><span class="s1">)location.getLongitude()); 
+        editor.apply(); 
+        String metodo = location.getProvider(); 
+        </span><span class="s0">float </span><span class="s1">speed = location.getSpeed(); 
+        </span><span class="s0">float </span><span class="s1">precision = location.getAccuracy(); 
+        Double altitud = location.getAltitude(); 
+        Float direccion = location.getBearing(); 
+        String sesionId = sharedPreferences.getString(</span><span class="s2">&quot;userName&quot;</span><span class="s1">, </span><span class="s2">&quot;&quot;</span><span class="s1">); 
+        String telefonoId = sharedPreferences.getString(</span><span class="s2">&quot;appID&quot;</span><span class="s1">, </span><span class="s2">&quot;&quot;</span><span class="s1">); 
+        String latitud = Double.toString(location.getLatitude()); 
+        String longitud = Double.toString(location.getLongitude()); 
+        String nombre = sharedPreferences.getString(</span><span class="s2">&quot;nombreRuta&quot;</span><span class="s1">, </span><span class="s2">&quot;sinNombre&quot;</span><span class="s1">); 
+        </span><span class="s0">final </span><span class="s1">String URI = </span><span class="s2">&quot;?m=&quot; </span><span class="s1">+ metodo + </span><span class="s2">&quot;&amp;s=&quot; </span><span class="s1">+ speed + </span><span class="s2">&quot;&amp;p=&quot; </span><span class="s1">+ precision + </span><span class="s2">&quot;&amp;a=&quot; </span><span class="s1">+ altitud + </span><span class="s2">&quot;&amp;r=&quot; </span><span class="s1">+ direccion + </span><span class="s2">&quot;&amp;e=&quot; </span><span class="s1">+ sesionId + </span><span class="s2">&quot;&amp;l=&quot; </span><span class="s1">+ latitud + </span><span class="s2">&quot;&amp;i=&quot; </span><span class="s1">+ telefonoId + </span><span class="s2">&quot;&amp;o=&quot; </span><span class="s1">+ longitud + </span><span class="s2">&quot;&amp;t=&quot; </span><span class="s1">+ </span><span class="s0">this</span><span class="s1">.distanciaTotal + </span><span class="s2">&quot;&amp;d=&quot; </span><span class="s1">+ </span><span class="s0">this</span><span class="s1">.disulti + </span><span class="s2">&quot;&amp;n=&quot; </span><span class="s1">+ nombre + </span><span class="s2">&quot;&amp;f=&quot; </span><span class="s1">+ fechaGPS; 
+        Thread thread = </span><span class="s0">new </span><span class="s1">Thread(</span><span class="s0">new </span><span class="s1">Runnable() { 
+            Editor editor = sharedPreferences.edit(); 
+ 
+            </span><span class="s0">public void </span><span class="s1">run() { 
+                ConnectivityManager connMgr = (ConnectivityManager)servicio.</span><span class="s0">this</span><span class="s1">.getSystemService(servicio.CONNECTIVITY_SERVICE); 
+                NetworkInfo networkInfo = connMgr.getActiveNetworkInfo(); 
+                </span><span class="s0">if</span><span class="s1">(networkInfo != </span><span class="s0">null </span><span class="s1">&amp;&amp; networkInfo.isConnected()) { 
+                    </span><span class="s0">try </span><span class="s1">{ 
+                        URL e = </span><span class="s0">new </span><span class="s1">URL(servicio.</span><span class="s0">this</span><span class="s1">.URL + </span><span class="s2">&quot;/interfaz/controlador/reporteAndroid.php&quot; </span><span class="s1">+ URI); 
+                        HttpURLConnection urlConnection = (HttpURLConnection)e.openConnection(); 
+                        InputStream in = urlConnection.getInputStream(); 
+                        InputStreamReader isw = </span><span class="s0">new </span><span class="s1">InputStreamReader(in); 
+ 
+                        </span><span class="s0">for</span><span class="s1">(</span><span class="s0">int </span><span class="s1">data = isw.read(); data != -</span><span class="s3">1</span><span class="s1">; data = isw.read()) { 
+                            servicio.</span><span class="s0">this</span><span class="s1">.current = servicio.</span><span class="s0">this</span><span class="s1">.current + (</span><span class="s0">char</span><span class="s1">)data; 
+                        } 
+ 
+                        Log.d(</span><span class="s2">&quot;Service&quot;</span><span class="s1">, </span><span class="s2">&quot;Respuesta del GET: &quot; </span><span class="s1">+ servicio.</span><span class="s0">this</span><span class="s1">.current); 
+                        urlConnection.disconnect(); 
+                        </span><span class="s0">this</span><span class="s1">.editor.putString(</span><span class="s2">&quot;data&quot;</span><span class="s1">, servicio.</span><span class="s0">this</span><span class="s1">.current.replaceAll(</span><span class="s2">&quot;</span><span class="s0">\n</span><span class="s2">&quot;</span><span class="s1">, </span><span class="s2">&quot;&quot;</span><span class="s1">)); 
+                        </span><span class="s0">this</span><span class="s1">.editor.apply(); 
+                    } </span><span class="s0">catch </span><span class="s1">(IOException var8) { 
+                        Log.d(</span><span class="s2">&quot;Service&quot;</span><span class="s1">, </span><span class="s2">&quot;No se pudo conectar con el Servidor&quot;</span><span class="s1">); 
+                        var8.printStackTrace(); 
+                    } 
+                } </span><span class="s0">else </span><span class="s1">{ 
+                    Log.d(</span><span class="s2">&quot;Service&quot;</span><span class="s1">, </span><span class="s2">&quot;No hay internet&quot;</span><span class="s1">); 
+                } 
+ 
+            } 
+        }); 
+        thread.start(); 
+        Toast.makeText(</span><span class="s0">this</span><span class="s1">, sharedPreferences.getString(</span><span class="s2">&quot;data&quot;</span><span class="s1">, </span><span class="s2">&quot;&quot;</span><span class="s1">), Toast.LENGTH_SHORT).show(); 
+        </span><span class="s0">this</span><span class="s1">.stopSelf(); 
+    } 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onConnectionFailed(ConnectionResult connectionResult) { 
+        </span><span class="s0">this</span><span class="s1">.stopLocationUpdates(); 
+        </span><span class="s0">this</span><span class="s1">.stopSelf(); 
+    } 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onConnectionSuspended(</span><span class="s0">int </span><span class="s1">i) { 
+        Log.e(</span><span class="s2">&quot;Service&quot;</span><span class="s1">, </span><span class="s2">&quot;GoogleApiClient connection has been suspend&quot;</span><span class="s1">); 
+    } 
+    @Override 
+    </span><span class="s0">public void </span><span class="s1">onDestroy() { 
+        </span><span class="s0">super</span><span class="s1">.onDestroy(); 
+    } 
+    @Override 
+    </span><span class="s0">public </span><span class="s1">IBinder onBind(Intent intent) { 
+        </span><span class="s0">return null</span><span class="s1">; 
+    } 
+ 
+    </span><span class="s0">private void </span><span class="s1">stopLocationUpdates() { 
+        </span><span class="s0">if</span><span class="s1">(</span><span class="s0">this</span><span class="s1">.googleApiClient != </span><span class="s0">null </span><span class="s1">&amp;&amp; </span><span class="s0">this</span><span class="s1">.googleApiClient.isConnected()) { 
+            </span><span class="s0">this</span><span class="s1">.googleApiClient.disconnect(); 
+        } 
+ 
+    } 
+} 
+</span></pre>
+</body>
+</html>

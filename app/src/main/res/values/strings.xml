@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">GpsTracker</string>
+    <string name="nombreMovil">Nombre Del Dispositivo</string>
+    <string name="dcorta">Distancia Corta:</string>
+    <string name="enviado">Peticiones Enviadas</string>
+    <string name="nomincorrecto">Nombre Incorrecto:</string>
+    <string name="nomusado">Nombre Usado:</string>
+    <string name="reportado">Reportado:</string>
+    <string name="Apagado">Apagado</string>
+    <string name="Encendido">Encendido</string>
+</resources>
