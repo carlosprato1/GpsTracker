@@ -9,17 +9,23 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView cdcorta;
     private TextView creportado;
     private TextView alerta;
+    private TextView alerta1;
     private int Minutos = 1;
     private String response = "vacio";
     boolean activo = false;
@@ -83,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
         this.cdcorta = (TextView)this.findViewById(R.id.cdcorta);
         this.creportado = (TextView)this.findViewById(R.id.creportado);
         alerta = (TextView) findViewById(R.id.alerta);
+        alerta1 = (TextView) findViewById(R.id.alerta1);
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
         //activo = sharedPreferences.getBoolean("activo", false);
         boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVes", true);
@@ -92,6 +100,16 @@ public class MainActivity extends AppCompatActivity {
             editor.putString("appID", UUID.randomUUID().toString());
             editor.apply();
         }
+
+        nombreMovil.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                if(activo){alerta1.setText(R.string.presionar);}
+
+                return false;
+            }
+        });
+
 
         this.boton.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
@@ -106,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         //editor.putInt("DisCorta", 0);
         //editor.putInt("reportado", 0);
         //editor.putFloat("distanciaTotal", 0.0F);
-
+        alerta1.setText("");
        String NombreActual= nombreMovil.getText().toString().trim();
        if(!nombreAux.equals(NombreActual)){error=false;}
 
@@ -199,6 +217,24 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         Log.d(TAG, "onResume");
         super.onResume();
+
+
+
+        LocationManager GPSStatus = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!GPSStatus.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("GPS Deshabilitado")
+                    .setCancelable(false)
+                    .setPositiveButton("Habilitar", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                        }
+                    });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+
           SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", Context.MODE_PRIVATE);
         //Minutos = sharedPreferences.getInt("Minutos", 1);
           nombreMovil.setText(sharedPreferences.getString("nombreRuta", ""));

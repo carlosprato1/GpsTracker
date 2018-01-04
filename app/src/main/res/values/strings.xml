@@ -8,8 +8,8 @@
     <string name="reportado">Reportado:</string>
     <string name="Apagado">Apagado</string>
     <string name="Encendido">Encendido</string>
-    <string name="usado">Nombre Usado. Introdusca Otro Nombre</string>
-    <string name="incorrecto">Nombre Incorrecto. Introdusca Otro Nombre</string>
+    <string name="usado">Nombre Usado. Introduzca Otro Nombre</string>
+    <string name="incorrecto">Nombre Incorrecto. Introduzca Otro Nombre</string>
     <string name="cero">"0"</string>
-
+    <string name="presionar">Luego de Cambiar el Nombre Apague/Encienda</string>
 </resources>
