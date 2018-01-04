@@ -1,2 +1,0 @@
-# GpsTracker
-Gps Android Tracker
