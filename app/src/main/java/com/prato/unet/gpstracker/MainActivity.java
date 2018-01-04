@@ -21,11 +21,9 @@ import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,35 +83,29 @@ public class MainActivity extends AppCompatActivity {
         //getSupportActionBar().setLogo(R.mipmap.ic_launcher);
         //getSupportActionBar().setDisplayUseLogoEnabled(true);
 
-        this.boton = (Button)this.findViewById(R.id.boton);
-        this.nombreMovil = (TextView)this.findViewById(R.id.nombreMovil);
-        this.cdcorta = (TextView)this.findViewById(R.id.cdcorta);
-        this.creportado = (TextView)this.findViewById(R.id.creportado);
-        alerta = (TextView) findViewById(R.id.alerta);
-        alerta1 = (TextView) findViewById(R.id.alerta1);
+        boton       = (Button)  findViewById(R.id.boton);
+        nombreMovil = (TextView)findViewById(R.id.nombreMovil);
+        cdcorta     = (TextView)findViewById(R.id.cdcorta);
+        creportado  = (TextView)findViewById(R.id.creportado);
+        alerta      = (TextView)findViewById(R.id.alerta);
+        alerta1     = (TextView)findViewById(R.id.alerta1);
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
-        //activo = sharedPreferences.getBoolean("activo", false);
         boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVes", true);
         if(PrimeraVes) {
             Editor editor = sharedPreferences.edit();
-            editor.putBoolean("PrimeraVes", false);
             editor.putString("appID", UUID.randomUUID().toString());
             editor.apply();
         }
 
-        nombreMovil.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if(activo){alerta1.setText(R.string.presionar);}
-
-                return false;
-            }
-        });
-
-
         this.boton.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
                 MainActivity.this.BotonEmpezar(view);
+            }
+        });
+        nombreMovil.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(activo){alerta1.setText(R.string.presionar);}
             }
         });
     }
@@ -126,12 +118,13 @@ public class MainActivity extends AppCompatActivity {
         //editor.putFloat("distanciaTotal", 0.0F);
         alerta1.setText("");
        String NombreActual= nombreMovil.getText().toString().trim();
-       if(!nombreAux.equals(NombreActual)){error=false;}
+       if(!nombreAux.equals(NombreActual)){
+           editor.putBoolean("primeraVezPosicion", true);
+           error=false;}
 
         if(activo) {
                 this.cancelAlarmManager();
                 activo = false;
-                //editor.putBoolean("activo", false);
                 this.BotonEstado();
 
             } else if("vacio".equals(response) || "reportado".equals(response) || !error)  {
@@ -140,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
                     if (this.verificarGoogle()) {
                      this.startAlarmManager();
                      activo = true;
-                     //editor.putBoolean("activo", true);
                         this.BotonEstado();
                    }
                 }
@@ -155,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         nombreAux = this.nombreMovil.getText().toString().trim();
         if(nombreAux.length() != 0 && !this.espacios(nombreAux)) {
             editor.putString("nombreRuta", this.nombreMovil.getText().toString().trim());
-
             editor.apply();
             return true;
         } else {
@@ -176,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 googleAPI.getErrorDialog(this, result, 9000).show();
             }
 
-            Log.e(TAG, "no hay cinexion con los servicios de GooglePlay");
+            Log.e(TAG, "no hay conexion con los servicios de GooglePlay");
             Toast.makeText(this.getApplicationContext(), "ServicesGoogle No Disponible", Toast.LENGTH_SHORT).show();
             return false;
         } else {
