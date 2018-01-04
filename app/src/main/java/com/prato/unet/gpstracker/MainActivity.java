@@ -7,8 +7,10 @@ package com.prato.unet.gpstracker;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
@@ -18,7 +20,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,17 +33,46 @@ public class MainActivity extends AppCompatActivity {
                                   
     //private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Button boton;
-    private boolean activo;
     private TextView nombreMovil;
     private TextView cdcorta;
     private TextView creportado;
+    private TextView alerta;
     private int Minutos = 1;
+    private String response = "vacio";
+    boolean activo = false;
+    String nombreAux = "vacio";
+    boolean error = false;
 
+    public class UpdateReceiver extends BroadcastReceiver {
+        public UpdateReceiver() {
+            super();
+        }
+        @Override
+        public void onReceive(Context context, Intent intent1) {
+            response = intent1.getStringExtra("data");
+            Toast.makeText(context, response, Toast.LENGTH_LONG).show();
+
+            if(activo && ("invalido".equals(response) || "usado".equals(response) )){
+                activo = false; error = true;
+                BotonEstado();
+                cancelAlarmManager();
+                if("invalido".equals(response)){alerta.setText(R.string.incorrecto);}
+                if("usado".equals(response)){alerta.setText(R.string.usado);}
+            }
+        }
+    }
+    private BroadcastReceiver receiver = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.activity_main);
+
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("test.UPDATE");
+        receiver = new UpdateReceiver ();
+        registerReceiver(receiver, filter);
 
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
         //getSupportActionBar().setLogo(R.mipmap.ic_launcher);
@@ -52,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
         this.nombreMovil = (TextView)this.findViewById(R.id.nombreMovil);
         this.cdcorta = (TextView)this.findViewById(R.id.cdcorta);
         this.creportado = (TextView)this.findViewById(R.id.creportado);
+        alerta = (TextView) findViewById(R.id.alerta);
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
-        this.activo = sharedPreferences.getBoolean("activo", false);
+        //activo = sharedPreferences.getBoolean("activo", false);
         boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVes", true);
         if(PrimeraVes) {
             Editor editor = sharedPreferences.edit();
@@ -72,36 +103,41 @@ public class MainActivity extends AppCompatActivity {
     protected void BotonEmpezar(View v) {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
         Editor editor = sharedPreferences.edit();
-        editor.putInt("DisCorta", 0);
-        editor.putInt("reportado", 0);
-        if(this.verificarInfo()) {
-            if(this.verificarGoogle()) {
-                if(this.activo) {
-                    this.cancelAlarmManager();
-                    this.activo = false;
-                    editor.putBoolean("activo", false);
-                    editor.putString("sessionID", "");
-                } else {
-                    this.startAlarmManager();
-                    this.activo = true;
-                    editor.putBoolean("activo", true);
-                    editor.putFloat("distanciaTotal", 0.0F);
-                    editor.putBoolean("firstTimeGettingPosition", true);
-                    editor.putString("sessionID", UUID.randomUUID().toString());
+        //editor.putInt("DisCorta", 0);
+        //editor.putInt("reportado", 0);
+        //editor.putFloat("distanciaTotal", 0.0F);
+
+       String NombreActual= nombreMovil.getText().toString().trim();
+       if(!nombreAux.equals(NombreActual)){error=false;}
+
+        if(activo) {
+                this.cancelAlarmManager();
+                activo = false;
+                //editor.putBoolean("activo", false);
+                this.BotonEstado();
+
+            } else if("vacio".equals(response) || "reportado".equals(response) || !error)  {
+            alerta.setText("");
+                if(this.verificarInfo()) {
+                    if (this.verificarGoogle()) {
+                     this.startAlarmManager();
+                     activo = true;
+                     //editor.putBoolean("activo", true);
+                        this.BotonEstado();
+                   }
                 }
 
-                editor.apply();
-                this.BotonEstado();
             }
-        }
+            editor.apply();
     }
 
     private boolean verificarInfo() {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", Context.MODE_PRIVATE);
         Editor editor = sharedPreferences.edit();
-        String ruta = this.nombreMovil.getText().toString().trim();
-        if(ruta.length() != 0 && !this.espacios(ruta)) {
+        nombreAux = this.nombreMovil.getText().toString().trim();
+        if(nombreAux.length() != 0 && !this.espacios(nombreAux)) {
             editor.putString("nombreRuta", this.nombreMovil.getText().toString().trim());
+
             editor.apply();
             return true;
         } else {
@@ -131,12 +167,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void BotonEstado() {
-        if(this.activo) {
+        if(activo) {
             this.boton.setText(R.string.Encendido);
-            this.boton.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
-        } else {
+            this.boton.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        } else{
             this.boton.setText(R.string.Apagado);
-            this.boton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+            this.boton.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
         }
     }
 
@@ -175,4 +211,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
     }
+
+
+
 }

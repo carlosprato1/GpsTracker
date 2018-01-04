@@ -36,7 +36,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     private static final String TAG = "servicio";
     String current = "";
     String URL = "http://pratowebhoster.hol.es/controlador/reporteAndroid.php";
-    private boolean servicioActivo = false;
+    private boolean servicioActivo = false;//si llama sin ser cerrado no pasa de nuevo por aqui
     private LocationRequest locationRequest;
     private GoogleApiClient googleApiClient;
     float disulti = 0.0F;
@@ -73,7 +73,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     }
     @Override
     public void onConnected(Bundle bundle) {
-        Log.d("servicio", "onConnected");
+        Log.d(TAG, "onConnected");
         this.locationRequest = LocationRequest.create();
         this.locationRequest.setInterval(1000L);
         this.locationRequest.setFastestInterval(1000L);
@@ -86,12 +86,12 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     public void onLocationChanged(Location location) {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
-        Log.d("servicio", "LocationChanged");
+        Log.d(TAG, "LocationChanged");
         if(location != null) {
             Log.e("servicio", " accuracy: " + location.getAccuracy());
             if(location.getAccuracy() < 100.0F) {
                 boolean primeraVezPosicion = sharedPreferences.getBoolean("primeraVezPosicion", true);
-                if(primeraVezPosicion) {
+                if(primeraVezPosicion) {//no pedir posicion anterior
                     editor.putBoolean("primeraVezPosicion", false);
                     this.stopLocationUpdates();
                     this.prepararHttpClient(location);
@@ -101,7 +101,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                     posicionAnterior.setLatitude((double)sharedPreferences.getFloat("latitudAnterior", 0.0F));
                     posicionAnterior.setLongitude((double)sharedPreferences.getFloat("LongitudAnterior", 0.0F));
                     this.disulti = location.distanceTo(posicionAnterior);
-                    Log.d("servicio", " Distancia " + this.disulti);
+                    Log.d(TAG, " Distancia " + this.disulti);
                     if(this.disulti >= 18.0F) {
                         this.distanciaTotal += this.disulti;
                         this.stopLocationUpdates();
@@ -125,7 +125,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         String fechaGPS = "";
         final SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",java.util.Locale.getDefault());
         dateFormat.setTimeZone(TimeZone.getDefault());
         Date fecha = new Date(location.getTime());
 
@@ -151,8 +151,9 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         String longitud = Double.toString(location.getLongitude());
         String nombre = sharedPreferences.getString("nombreRuta", "sinNombre");
         final String URI = "?m=" + metodo + "&s=" + speed + "&p=" + precision + "&a=" + altitud + "&r=" + direccion + "&e=" + sesionId + "&l=" + latitud + "&i=" + telefonoId + "&o=" + longitud + "&t=" + this.distanciaTotal + "&d=" + this.disulti + "&n=" + nombre + "&f=" + fechaGPS;
+
         Thread thread = new Thread(new Runnable() {
-            Editor editor = sharedPreferences.edit();
+
 
             public void run() {
                 ConnectivityManager connMgr = (ConnectivityManager)servicio.this.getSystemService(servicio.CONNECTIVITY_SERVICE);
@@ -164,26 +165,33 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                         InputStream in = urlConnection.getInputStream();
                         InputStreamReader isw = new InputStreamReader(in);
 
+                        StringBuilder cadena = new StringBuilder();
                         for(int data = isw.read(); data != -1; data = isw.read()) {
-                            servicio.this.current = servicio.this.current + (char)data;
+                            cadena.append((char)data);
                         }
-
-                        Log.d("Service", "Respuesta del GET: " + servicio.this.current);
+                        //servicio.this.current = servicio.this.current.replaceAll("\n", "");
+                        current = cadena.toString().replaceAll("\n", "");
+                        Log.d(TAG, "Respuesta del GET: " + servicio.this.current);
                         urlConnection.disconnect();
-                        this.editor.putString("data", servicio.this.current.replaceAll("\n", ""));
-                        this.editor.apply();
+
+
+                        Intent intent1 = new Intent();
+                        intent1.putExtra("data", servicio.this.current);
+                        intent1.setAction("test.UPDATE");
+                        getBaseContext().sendBroadcast(intent1);
+
+
                     } catch (IOException var8) {
-                        Log.d("Service", "No se pudo conectar con el Servidor");
+                        Log.d(TAG, "No se pudo conectar con el Servidor");
                         var8.printStackTrace();
                     }
                 } else {
-                    Log.d("Service", "No hay internet");
+                    Log.d(TAG, "No hay internet");
                 }
 
             }
         });
         thread.start();
-        Toast.makeText(this, sharedPreferences.getString("data", ""), Toast.LENGTH_SHORT).show();
         this.stopSelf();
     }
     @Override
@@ -193,7 +201,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     }
     @Override
     public void onConnectionSuspended(int i) {
-        Log.e("Service", "GoogleApiClient connection has been suspend");
+        Log.e(TAG, "GoogleApiClient connection has been suspend");
     }
     @Override
     public void onDestroy() {
