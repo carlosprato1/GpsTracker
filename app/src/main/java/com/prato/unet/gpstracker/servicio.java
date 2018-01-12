@@ -33,7 +33,7 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-//probanco github
+//probanco github1
 public class servicio extends Service implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
     private static final String TAG = "servicio";
     String current = "";
