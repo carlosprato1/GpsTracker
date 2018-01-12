@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>Android GPS Tracker</title>
+	<link rel="stylesheet" href="vistas/css/bootstrap.min.css">
+	<link rel="stylesheet" href="vistas/css/estilos.css">
+
+</head>
+
+<body>
+	<header>
+		<div class="container-fluid">
+			<h3>Android - Tk-103 Tracker <small>Pagina de prueba</small></h3>
+			<h5>1. Ingresa a "Terminales/Android" luego agrega el nombre del Dispositivo<br>2. Descarga la aplicacion: <a href="https://mega.nz/#!clRhDTLJ!FKPaLiHrOzA769AyDFt1r3Y_aR01v4pFYHJzWOe2rfY">Descargar</a><br>3. Instala la aplicacion en el Android<br>4. Activa el GPS<br>5. Entra a la aplicacion y escribe el nombre del dispositivo<br>5. Prueba!! <small>recuerda que el telefono debe tener conexion a internet y encender el GPS aumentara el consumo de la bateria <small></h5>
+
+			<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Mapa</a>
+    </div>
+
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav">
+       
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Terminales <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="vistas/terAndroid.php" target="enlace">Android</a></li>
+            <li><a href="vistas/terTk103.php" target="enlace">Tk-103 - Beta</a></li>
+          </ul>
+        </li>
+      </ul>
+   
+    </div>
+  </div>
+</nav>
+
+		</div>  
+
+	</header>
+
+
+
+<div class="container-fluid" id="centro">
+
+	<section class="row">
+
+      <div class="myIframe" >
+      	<iframe width="100%" height="700px" frameborder="0" name="enlace" src="vistas/tabla_info.php" onload="autofitIframe(this);"></iframe>
+      </div>
+			
+   </section>
+	
+</div> 
+
+      <footer>
+		<div class="container">
+			<h3>carlos prato <small>telefono:0426-3957066</small></h3>
+			<h4>ultima actualizacion: 11-Agosto-2017</h4>
+		</div>
+	</footer>  
+
+
+
+<script src="vistas/js/jquery-3.1.1.min.js"></script>
+<script src="vistas/js/bootstrap.min.js"></script>
+		
+
+</body>
+
+
+<script language="JavaScript">
+//Ajusta el tamaño del iframe para evitar el scroll
+function autofitIframe(id){
+  var ajuste = 0;
+  id.style.height = "600px";
+  if (!window.opera && document.all && document.getElementById){
+
+    var ajuste = (0.0147*parseInt(id.contentWindow.document.body.scrollHeight)-7.026)*60;
+    ajuste = parseInt(ajuste,10);
+    id.style.height= id.contentWindow.document.body.scrollHeight+ajuste;
+
+
+  } else if(document.getElementById) {
+    
+    var ajuste = (0.0147*parseInt(id.contentDocument.body.scrollHeight)-7.026)*60;
+    ajuste = parseInt(ajuste,10);
+    id.style.height=id.contentDocument.body.scrollHeight+ajuste+"px";
+  }
+
+
+}
+</script>
+</html>
