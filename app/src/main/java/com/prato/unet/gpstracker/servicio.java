@@ -106,14 +106,15 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                         this.distanciaTotal += this.disulti;
                         this.stopLocationUpdates();
                         this.prepararHttpClient(location);
-                        editor.putInt("reportado", sharedPreferences.getInt("reportado", 0) + 1);
-                        editor.apply();
                     } else {
                         editor.putInt("DisCorta", sharedPreferences.getInt("DisCorta", 0) + 1);
                         editor.apply();
-                        Toast.makeText(this, "Poca distancia", Toast.LENGTH_SHORT).show();
                         this.stopLocationUpdates();
                         this.stopSelf();
+
+                        Intent intent1 = new Intent();
+                        intent1.setAction("test.UPDATE");
+                        getBaseContext().sendBroadcast(intent1);
                     }
                 }
             }

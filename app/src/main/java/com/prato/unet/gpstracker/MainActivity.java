@@ -34,7 +34,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "activity";
 
-                                  
+
     //private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Button boton;
     private TextView nombreMovil;
@@ -42,9 +42,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView creportado;
     private TextView alerta;
     private TextView alerta1;
-    private int Minutos = 1;
+    boolean activo=false;
     private String response = "vacio";
-    boolean activo = false;
     String nombreAux = "vacio";
     boolean error = false;
 
@@ -55,18 +54,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent1) {
             response = intent1.getStringExtra("data");
-            Toast.makeText(context, response, Toast.LENGTH_LONG).show();
-
+            SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
+            Editor editor = sharedPreferences.edit();
+            cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
             if(activo && ("invalido".equals(response) || "usado".equals(response) )){
+                Toast.makeText(context, response, Toast.LENGTH_LONG).show();
                 activo = false; error = true;
                 BotonEstado();
                 cancelAlarmManager();
                 if("invalido".equals(response)){alerta.setText(R.string.incorrecto);}
                 if("usado".equals(response)){alerta.setText(R.string.usado);}
+            }if(activo && "reportado".equals(response)){
+                editor.putInt("reportado", sharedPreferences.getInt("reportado", 0) + 1);
+                editor.apply();
+                creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
             }
         }
     }
-    private BroadcastReceiver receiver = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("test.UPDATE");
-        receiver = new UpdateReceiver ();
+        BroadcastReceiver receiver = new UpdateReceiver();
         registerReceiver(receiver, filter);
 
         //getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -89,17 +93,22 @@ public class MainActivity extends AppCompatActivity {
         creportado  = (TextView)findViewById(R.id.creportado);
         alerta      = (TextView)findViewById(R.id.alerta);
         alerta1     = (TextView)findViewById(R.id.alerta1);
+
+
+
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
-        boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVes", true);
+        Editor editor = sharedPreferences.edit();
+        boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVesID", true);
+
         if(PrimeraVes) {
-            Editor editor = sharedPreferences.edit();
             editor.putString("appID", UUID.randomUUID().toString());
+            editor.putBoolean("PrimeraVesID",false);
             editor.apply();
         }
 
         this.boton.setOnClickListener(new OnClickListener() {
             public void onClick(View view) {
-                MainActivity.this.BotonEmpezar(view);
+                MainActivity.this.BotonEmpezar();
             }
         });
         nombreMovil.setOnClickListener(new OnClickListener() {
@@ -108,35 +117,52 @@ public class MainActivity extends AppCompatActivity {
                 if(activo){alerta1.setText(R.string.presionar);}
             }
         });
+        creportado.setOnClickListener(new OnClickListener() {
+            int borrarVariables = 0;
+            @Override
+            public void onClick(View view) {
+               borrarVariables =borrarVariables+1;
+               if(borrarVariables == 6){
+                   SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
+                   Editor editor = sharedPreferences.edit();
+                   editor.putInt("DisCorta", 0);
+                   editor.putInt("reportado", 0);
+                   editor.apply();
+                   creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
+                   cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
+               }
+            }
+        });
     }
 
-    protected void BotonEmpezar(View v) {
-        SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
+    protected void BotonEmpezar() {
+        SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
         Editor editor = sharedPreferences.edit();
         //editor.putInt("DisCorta", 0);
         //editor.putInt("reportado", 0);
         //editor.putFloat("distanciaTotal", 0.0F);
         alerta1.setText("");
        String NombreActual= nombreMovil.getText().toString().trim();
+
        if(!nombreAux.equals(NombreActual)){
            editor.putBoolean("primeraVezPosicion", true);
-           error=false;}
+           error=false;
+       }
 
         if(activo) {
-                this.cancelAlarmManager();
+                cancelAlarmManager();
                 activo = false;
-                this.BotonEstado();
+                BotonEstado();
 
             } else if("vacio".equals(response) || "reportado".equals(response) || !error)  {
             alerta.setText("");
-                if(this.verificarInfo()) {
-                    if (this.verificarGoogle()) {
-                     this.startAlarmManager();
+                if(verificarInfo()) {
+                    if (verificarGoogle()) {
+                     startAlarmManager();
                      activo = true;
-                        this.BotonEstado();
+                     BotonEstado();
                    }
                 }
-
             }
             editor.apply();
     }
@@ -192,8 +218,9 @@ public class MainActivity extends AppCompatActivity {
         Intent activityIntent = new Intent(context, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, activityIntent, 0);
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
-        this.Minutos = sharedPreferences.getInt("Minutos", 1);
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), Minutos * 60000, pendingIntent);
+        int minutos = sharedPreferences.getInt("Minutos", 1);
+        assert alarmManager != null;
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), minutos * 60000, pendingIntent);
     }
 
     private void cancelAlarmManager() {
@@ -202,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
         Intent gpsTrackerIntent = new Intent(context, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, gpsTrackerIntent, 0);
         AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        assert alarmManager != null;
         alarmManager.cancel(pendingIntent);
     }
     @Override
@@ -209,9 +237,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onResume");
         super.onResume();
 
-
-
         LocationManager GPSStatus = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        assert GPSStatus != null;
         if (!GPSStatus.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage("GPS Deshabilitado")
@@ -227,18 +254,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
           SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", Context.MODE_PRIVATE);
-        //Minutos = sharedPreferences.getInt("Minutos", 1);
+          //minutos = sharedPreferences.getInt("Minutos", 1);
           nombreMovil.setText(sharedPreferences.getString("nombreRuta", ""));
+          activo = sharedPreferences.getBoolean("activo", false);
           creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
           cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
-
-        //BotonEstado();
+          BotonEstado();
     }
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop");
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
+        Editor editor = sharedPreferences.edit();
+        editor.putBoolean("activo",activo);
+        editor.apply();
     }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
 
-
-
+    }
 }
