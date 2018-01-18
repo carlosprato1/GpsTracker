@@ -95,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
         alerta1     = (TextView)findViewById(R.id.alerta1);
 
 
-
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
         Editor editor = sharedPreferences.edit();
         boolean PrimeraVes = sharedPreferences.getBoolean("PrimeraVesID", true);
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             } else if("vacio".equals(response) || "reportado".equals(response) || !error)  {
             alerta.setText("");
                 if(verificarInfo()) {
-                    if (verificarGoogle()) {
+                    if (verificarGoogle()) { //servicio de google en el telefono
                      startAlarmManager();
                      activo = true;
                      BotonEstado();
@@ -188,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean verificarGoogle() {
         GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
         int result = googleAPI.isGooglePlayServicesAvailable(this);
-        if(result != 0) {
+        if(result != 0) {// success  = 0
             if(googleAPI.isUserResolvableError(result)) {
                 googleAPI.getErrorDialog(this, result, 9000).show();
             }

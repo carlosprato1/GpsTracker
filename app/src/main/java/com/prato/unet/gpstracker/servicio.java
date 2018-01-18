@@ -23,9 +23,14 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -36,13 +41,27 @@ import java.util.TimeZone;
 //probanco github1
 public class servicio extends Service implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener {
     private static final String TAG = "servicio";
+    Location locationAux;
     String current = "";
-    String URL = "http://pratowebhoster.hol.es/controlador/reporteAndroid.php";
+    String current1 = "";
+    //String URL = "http://pratowebhoster.hol.es";
+    String URL = "http://192.168.1.3/interfaz";
     private boolean servicioActivo = false;//si llama sin ser cerrado no pasa de nuevo por aqui
     private LocationRequest locationRequest;
     private GoogleApiClient googleApiClient;
     float disulti = 0.0F;
     float distanciaTotal = 0.0F;
+
+    Float speed;
+    Float precision;
+    Double altitud;
+    Float direccion;
+    String telefonoId;
+    String latitud;
+    String longitud;
+    String nombre;
+    String fechaGPS;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -88,6 +107,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     public void onLocationChanged(Location location) {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
+
         Log.d(TAG, "LocationChanged");
         if(location != null) {
             Log.e("servicio", " accuracy: " + location.getAccuracy());
@@ -107,7 +127,11 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                     if(this.disulti >= 18.0F) {
                         this.distanciaTotal += this.disulti;
                         this.stopLocationUpdates();
+
+
                         this.prepararHttpClient(location);
+
+
                     } else {
                         editor.putInt("DisCorta", sharedPreferences.getInt("DisCorta", 0) + 1);
                         editor.apply();
@@ -125,7 +149,8 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     }
 
     protected void prepararHttpClient(Location location) {
-        String fechaGPS = "";
+        locationAux = location;
+        fechaGPS = "";
         final SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",java.util.Locale.getDefault());
@@ -143,27 +168,25 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         editor.putFloat("latitudAnterior", (float)location.getLatitude());
         editor.putFloat("LongitudAnterior", (float)location.getLongitude());
         editor.apply();
-        String metodo = location.getProvider();
-        float speed = location.getSpeed();
-        float precision = location.getAccuracy();
-        Double altitud = location.getAltitude();
-        Float direccion = location.getBearing();
-        String sesionId = sharedPreferences.getString("userName", "");
-        String telefonoId = sharedPreferences.getString("appID", "");
-        String latitud = Double.toString(location.getLatitude());
-        String longitud = Double.toString(location.getLongitude());
-        String nombre = sharedPreferences.getString("nombreRuta", "sinNombre");
-        final String URI = "?m=" + metodo + "&s=" + speed + "&p=" + precision + "&a=" + altitud + "&r=" + direccion + "&e=" + sesionId + "&l=" + latitud + "&i=" + telefonoId + "&o=" + longitud + "&t=" + this.distanciaTotal + "&d=" + this.disulti + "&n=" + nombre + "&f=" + fechaGPS;
+        speed = location.getSpeed();
+        precision = location.getAccuracy();
+        altitud = location.getAltitude();
+        direccion = location.getBearing();
+        telefonoId = sharedPreferences.getString("appID", "");
+        latitud = Double.toString(location.getLatitude());
+        longitud = Double.toString(location.getLongitude());
+        nombre = sharedPreferences.getString("nombreRuta", "sinNombre");
+        final String URI =  "?s=" + speed + "&p=" + precision + "&a=" + altitud + "&r=" + direccion + "&l=" + latitud + "&i=" + telefonoId + "&o=" + longitud + "&t=" + this.distanciaTotal + "&d=" + this.disulti + "&n=" + nombre + "&f=" + fechaGPS;
 
         Thread thread = new Thread(new Runnable() {
 
-
             public void run() {
+
                 ConnectivityManager connMgr = (ConnectivityManager)servicio.this.getSystemService(servicio.CONNECTIVITY_SERVICE);
                 NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
                 if(networkInfo != null && networkInfo.isConnected()) {
                     try {
-                        URL e = new URL(servicio.this.URL + "/interfaz/controlador/reporteAndroid.php" + URI);
+                        URL e = new URL(servicio.this.URL + "/controlador/reporteAndroid.php" + URI);
                         HttpURLConnection urlConnection = (HttpURLConnection)e.openConnection();
                         InputStream in = urlConnection.getInputStream();
                         InputStreamReader isw = new InputStreamReader(in);
@@ -177,19 +200,61 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                         Log.d(TAG, "Respuesta del GET: " + servicio.this.current);
                         urlConnection.disconnect();
 
-
                         Intent intent1 = new Intent();
                         intent1.putExtra("data", servicio.this.current);
                         intent1.setAction("test.UPDATE");
                         getBaseContext().sendBroadcast(intent1);
 
+                        SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
+
+                  ///********REGRESO la Conexion*************
+
+
+
+                        if (sharedPreferences.getBoolean("trackAlmacenadoAux",false)){
+                            Log.e(TAG, "Regreso la Conexion");
+                            Editor editor = sharedPreferences.edit();
+
+                            URL e1 = new URL(servicio.this.URL + "/controlador/reporteJSON.php");
+                            HttpURLConnection urlConnection1 = (HttpURLConnection)e1.openConnection();
+                            urlConnection1.setDoOutput(true);
+                            urlConnection1.setRequestMethod("POST");
+                            urlConnection1.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                            urlConnection1.setRequestProperty("Accept", "application/json");
+                            OutputStreamWriter streamWriter = new OutputStreamWriter(urlConnection1.getOutputStream());
+                            streamWriter.write(sharedPreferences.getString("dataJSON",""));
+                            streamWriter.flush();
+//****Leer el response de la peticion POST
+                            InputStream in1 = urlConnection1.getInputStream();
+                            InputStreamReader isw1 = new InputStreamReader(in1);
+
+                            StringBuilder cadena1 = new StringBuilder();
+                            for(int data = isw1.read(); data != -1; data = isw1.read()) {
+                                cadena1.append((char)data);
+                            }
+                            current1 = cadena1.toString().replaceAll("\n", "");
+                            Log.d(TAG, "Respuesta del POST " + servicio.this.current1);
+
+                            urlConnection.disconnect();
+
+
+                            editor.putString("dataJSON","" ); //Borrar Despues de enviar
+                            editor.putBoolean("trackAlmacenadoAux", false);
+                            editor.apply();
+
+                        }
+
+                        ////****REGRESO la conexion**************
+
 
                     } catch (IOException var8) {
-                        Log.d(TAG, "No se pudo conectar con el Servidor");
+                        //error en servidor?
+                        noConexion();
                         var8.printStackTrace();
                     }
                 } else {
-                    Log.d(TAG, "No hay internet");
+                   //no acceso a la red
+                    noConexion();
                 }
 
             }
@@ -213,6 +278,64 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void noConexion(){
+        SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
+        Editor editor = sharedPreferences.edit();
+
+        Log.e(TAG, "No hay internet");
+        //**********ESCRIBIR**************
+        try {
+            if (!sharedPreferences.getBoolean("trackAlmacenadoAux",false)) {//primera ves
+                Log.e(TAG, "primera ves jsonarray");
+                JSONArray jArray = new JSONArray();
+
+                Log.e(TAG, " longitud: "+jArray.length());
+                JSONObject track = new JSONObject();
+                track.put("s", speed);
+                track.put("p", precision);
+                track.put("a", altitud);
+                track.put("r", direccion);
+                track.put("l", latitud);
+                track.put("i", telefonoId);
+                track.put("o", longitud);
+                track.put("t", distanciaTotal);
+                track.put("d", disulti);
+                track.put("n", nombre);
+                track.put("f", fechaGPS);
+                jArray.put(track);
+                editor.putString("dataJSON", jArray.toString());
+                editor.putBoolean("trackAlmacenadoAux", true);
+                editor.apply();
+            }else{
+                Log.e(TAG, "json array mas de un track");
+                JSONArray jArray = new JSONArray(sharedPreferences.getString("dataJSON",""));
+                if(jArray.length() > 1000){
+                    Log.e(TAG, "cantidad maxima");
+                    return;
+                }
+                Log.e(TAG, " longitud: "+jArray.length());
+                JSONObject track = new JSONObject();
+                track.put("s", speed);
+                track.put("p", precision);
+                track.put("a", altitud);
+                track.put("r", direccion);
+                track.put("l", latitud);
+                track.put("i", telefonoId);
+                track.put("o", longitud);
+                track.put("t", distanciaTotal);
+                track.put("d", disulti);
+                track.put("n", nombre);
+                track.put("f", fechaGPS);
+                jArray.put(track);
+                editor.putString("dataJSON", jArray.toString());
+                editor.apply();
+            }
+
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private void stopLocationUpdates() {
