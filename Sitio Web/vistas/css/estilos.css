@@ -1,0 +1,44 @@
+header{
+    background:#2c3e50;
+    color:#fff;
+}
+
+aside{
+    background:#c07f2b;
+    color:#fff;
+}
+
+article{
+    background:#c0392b;
+    color:#fff;
+}
+
+
+footer{
+background:#16A085;
+color:#FFFFFF;
+}
+
+.color1{
+	background:#34495e;
+	color:#fff;
+}
+
+.main{
+     background:#cccdda;
+    color:#060606;
+  
+}
+.enlace{
+    width: 100px;
+     height: 100px;
+}
+
+@media only screen and (max-width: 768px) {
+   .tabla_iframe {
+        height: 250px;
+    }
+    .mapa_iframe{
+        height: 400px;
+    }
+}
