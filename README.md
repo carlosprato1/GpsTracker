@@ -1,23 +1,26 @@
 Rastrador o seguimiento GPS de Telefonos android por medio de una aplicacion Android y un sitio web.
-  El seguimiento se hace de los datos obtenidos del GPs como velocidad, rumbo, coordenadas (altitud,latitud,altura)
-  tiempo de la lectura ademas de distancias.
+  El seguimiento se hace de los datos obtenidos del GPS como velocidad, rumbo, coordenadas (altitud,latitud,altura)
+  tiempo de la lectura.
   
-  sitio web: http://www.pratowebhoster.hol.es/
+  sitio web: http://www.pratowebhoster.hol.es/ 
  
 caracteristicas del sitio web:
-- escrito en php5 y mysql.
-- rastreo de multiples telefonos simultaneamente.
-- GET y POST para la comunicacion entre el sitio web y la aplicacion.
-- uso de GoogleMaps.
-- simulacion de recorrido por intervalos de tiempo.
-- registros de dispositivo con un "Nombre" para identificar los datos de cada usuario, impidiendo
-  2 aplicaciones con mismo nombre.
+
+- uso de php7 y mysql.
+- permite rastrear multiples aplicaciones android.
+- uso de API de GoogleMaps para vizualizar las posiciones. permitiendo simular recorrido en intervalo de fechas y horas.
+- registro de dispositivos Android asignando un "Nombre".
 
 Caracteristicas de la aplicacion Android.
-- projecto en Android Studio con Java.
+
+- Uso de Android Studio con Java.
+- Uso del GPS (localizacion precisa)
 - uso del servicio de google play location.
-- intervalo de envio de informacion 1 min.
-- Uso del GPS (localizacon precisa)
-- interfaz para agregar el nombre
-- alertar en caso que el nombre es usado por otra aplicacion o no
-  ha sido registrado en el sitio web.
+- uso de alarManager para programar intervalos de llamadas a la clase tipo service (que se ocupa de obtener la informacion del GPS   y enviarla al sitio web)
+- uso de GET para enviar una cadena con la informacion del GPS.
+
+- en caso que se pierda la conexion a internet se almacenan los datos del GPS en un sharedreference tipo String apoyandose en JSON.
+
+- cuando se retoma la conexion a internet se envia la informacion almacenada (JSON) por el cuerpo de una petion HTTP (metodo POST)
+
+- interfaz para agregar el "Nombre" del dispositivo previamente registrado en el sitio web (esto con la finalidad de llevar un       control desde el sitio web. como por ejemplo limitando el uso de la plataforma a cualquiera que tenga la aplicacion android,       evita multiples aplicaciones con el mismo nombre. etc).
