@@ -12,4 +12,7 @@
     <string name="incorrecto">Nombre Incorrecto. Introduzca Otro Nombre</string>
     <string name="cero">"0"</string>
     <string name="presionar">Luego de Cambiar el Nombre Apague/Encienda</string>
+    <string name="nointernet1">No hay Conexion a internet</string>
+    <string name="nointernet2">Cambie el nombre cuando halla conexion</string>
+    <string name="noconexion">No conexion</string>
 </resources>

@@ -154,7 +154,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         final SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",java.util.Locale.getDefault());
-        dateFormat.setTimeZone(TimeZone.getDefault());
+        dateFormat.setTimeZone(TimeZone.getTimeZone("America/Caracas"));
         Date fecha = new Date(location.getTime());
 
         try {
@@ -200,11 +200,6 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                         Log.d(TAG, "Respuesta del GET: " + servicio.this.current);
                         urlConnection.disconnect();
 
-                        Intent intent1 = new Intent();
-                        intent1.putExtra("data", servicio.this.current);
-                        intent1.setAction("test.UPDATE");
-                        getBaseContext().sendBroadcast(intent1);
-
                         SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
 
                   ///********REGRESO la Conexion*************
@@ -214,6 +209,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                         if (sharedPreferences.getBoolean("trackAlmacenadoAux",false)){
                             Log.e(TAG, "Regreso la Conexion");
                             Editor editor = sharedPreferences.edit();
+                            editor.putBoolean("bloquearNombre", false);
 
                             URL e1 = new URL(servicio.this.URL + "/controlador/reporteJSON.php");
                             HttpURLConnection urlConnection1 = (HttpURLConnection)e1.openConnection();
@@ -243,9 +239,13 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                             editor.apply();
 
                         }
-
                         ////****REGRESO la conexion**************
-
+                        Editor editor = sharedPreferences.edit();
+                        editor.apply();
+                        Intent intent1 = new Intent();
+                        intent1.putExtra("data", servicio.this.current);
+                        intent1.setAction("test.UPDATE");
+                        getBaseContext().sendBroadcast(intent1);
 
                     } catch (IOException var8) {
                         //error en servidor?
@@ -281,8 +281,20 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     }
 
     private void noConexion(){
+
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs", 0);
         Editor editor = sharedPreferences.edit();
+        //bloquear nombre si esta encendido hasta que regrese el internet.
+        editor.putInt("cnointernet", sharedPreferences.getInt("cnointernet", 0)+1);
+        if (sharedPreferences.getBoolean("activo",false) && !sharedPreferences.getBoolean("bloquearNombre",false)){
+            editor.putBoolean("bloquearNombre", true);
+            editor.apply();
+            Intent intent2 = new Intent();
+            intent2.setAction("test.UPDATE");
+            getBaseContext().sendBroadcast(intent2);
+
+        }
+
 
         Log.e(TAG, "No hay internet");
         //**********ESCRIBIR**************

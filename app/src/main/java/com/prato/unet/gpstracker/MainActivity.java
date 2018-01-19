@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView creportado;
     private TextView alerta;
     private TextView alerta1;
+    private TextView cnointernet;
     boolean activo=false;
     private String response = "vacio";
     String nombreAux = "vacio";
@@ -53,10 +54,15 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public void onReceive(Context context, Intent intent1) {
+
             response = intent1.getStringExtra("data");
             SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
             Editor editor = sharedPreferences.edit();
             cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
+            //limpiar
+            alerta1.setText("");
+            alerta.setText("");
+
             if(activo && ("invalido".equals(response) || "usado".equals(response) )){
                 Toast.makeText(context, response, Toast.LENGTH_LONG).show();
                 activo = false; error = true;
@@ -69,7 +75,12 @@ public class MainActivity extends AppCompatActivity {
                 editor.apply();
                 creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
             }
-        }
+
+            if(sharedPreferences.getBoolean("bloquearNombre",false)){
+                  nombreMovil.setFocusable(false);
+            }else{nombreMovil.setFocusableInTouchMode(true);}
+
+        }//Onreceiver
     }
 
     @Override
@@ -93,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
         creportado  = (TextView)findViewById(R.id.creportado);
         alerta      = (TextView)findViewById(R.id.alerta);
         alerta1     = (TextView)findViewById(R.id.alerta1);
+        cnointernet = (TextView)findViewById(R.id.cnointernet);
 
 
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
@@ -113,7 +125,12 @@ public class MainActivity extends AppCompatActivity {
         nombreMovil.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE );
                 if(activo){alerta1.setText(R.string.presionar);}
+                if(sharedPreferences.getBoolean("bloquearNombre",false)){alerta1.setText(R.string.nointernet1);
+                                                                              alerta.setText(R.string.nointernet2);
+                }
+
             }
         });
         creportado.setOnClickListener(new OnClickListener() {
@@ -163,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                    }
                 }
             }
+            editor.putBoolean("activo",activo);
             editor.apply();
     }
 
@@ -258,6 +276,7 @@ public class MainActivity extends AppCompatActivity {
           activo = sharedPreferences.getBoolean("activo", false);
           creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
           cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
+          cnointernet.setText(String.valueOf(sharedPreferences.getInt("cnointernet", 0)));
           BotonEstado();
     }
     @Override

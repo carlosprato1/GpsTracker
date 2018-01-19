@@ -73,12 +73,31 @@
         android:layout_below="@+id/dcorta"
         android:hint="@string/reportado" />
 
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="150dp"
+        android:layout_height="30dp"
+        android:layout_alignLeft="@+id/textView4"
+        android:layout_alignStart="@+id/textView4"
+        android:layout_below="@+id/textView4"
+        android:hint="@string/noconexion" />
+
+    <TextView
+        android:id="@+id/cnointernet"
+        android:layout_width="100dp"
+        android:layout_height="30dp"
+        android:layout_alignLeft="@+id/creportado"
+        android:layout_alignStart="@+id/creportado"
+        android:layout_below="@+id/creportado"
+        android:hint="@string/cero" />
+
     <Button
         android:id="@+id/boton"
         android:layout_width="150dp"
         android:layout_height="50dp"
+        android:layout_below="@+id/textView5"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
+        android:layout_marginTop="30dp"
         android:background="@color/colorPrimary"
         android:text="@string/Apagado" />
 
