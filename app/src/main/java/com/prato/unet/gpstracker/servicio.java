@@ -51,7 +51,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     private LocationRequest locationRequest;
     private GoogleApiClient googleApiClient;
     float disulti = 0.0F;
-
+//hola
     Float speed;
     Float precision;
     Double altitud;
