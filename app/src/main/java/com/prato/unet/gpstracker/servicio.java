@@ -36,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 //probanco github1
@@ -44,13 +45,12 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
     Location locationAux;
     String current = "";
     String current1 = "";
-    //String URL = "http://pratowebhoster.hol.es";
-    String URL = "http://192.168.1.3/interfaz";
+    String URL = "http://pratowebhoster.hol.es";
+    //String URL = "http://192.168.1.4/interfaz";
     private boolean servicioActivo = false;//si llama sin ser cerrado no pasa de nuevo por aqui
     private LocationRequest locationRequest;
     private GoogleApiClient googleApiClient;
     float disulti = 0.0F;
-    float distanciaTotal = 0.0F;
 
     Float speed;
     Float precision;
@@ -111,26 +111,29 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         Log.d(TAG, "LocationChanged");
         if(location != null) {
             Log.e("servicio", " accuracy: " + location.getAccuracy());
-            if(location.getAccuracy() < 100.0F) {
+
+            if(location.getAccuracy() < 60.0F ) {
                 boolean primeraVezPosicion = sharedPreferences.getBoolean("primeraVezPosicion", true);
+
+
                 if(primeraVezPosicion) {//no pedir posicion anterior
                     editor.putBoolean("primeraVezPosicion", false);
+                    editor.apply();
                     this.stopLocationUpdates();
                     this.prepararHttpClient(location);
-                    editor.apply();
+                    this.stopSelf();
+
                 } else {
                     Location posicionAnterior = new Location("");
                     posicionAnterior.setLatitude((double)sharedPreferences.getFloat("latitudAnterior", 0.0F));
                     posicionAnterior.setLongitude((double)sharedPreferences.getFloat("LongitudAnterior", 0.0F));
                     this.disulti = location.distanceTo(posicionAnterior);
                     Log.d(TAG, " Distancia " + this.disulti);
-                    if(this.disulti >= 18.0F) {
-                        this.distanciaTotal += this.disulti;
+                    if(this.disulti >= 17.0F) {
+
                         this.stopLocationUpdates();
-
-
                         this.prepararHttpClient(location);
-
+                        this.stopSelf();
 
                     } else {
                         editor.putInt("DisCorta", sharedPreferences.getInt("DisCorta", 0) + 1);
@@ -155,7 +158,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         Editor editor = sharedPreferences.edit();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",java.util.Locale.getDefault());
         dateFormat.setTimeZone(TimeZone.getTimeZone("America/Caracas"));
-        Date fecha = new Date(location.getTime());
+        Date fecha = Calendar.getInstance().getTime(); // location.getTime() no es el current time del GPS
 
         try {
             fechaGPS = URLEncoder.encode(dateFormat.format(fecha), "UTF-8");
@@ -163,12 +166,10 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
             var19.printStackTrace();
         }
 
-        this.distanciaTotal = sharedPreferences.getFloat("distanciaTotal", 0.0F);
-        editor.putFloat("distanciaTotal", this.distanciaTotal);
         editor.putFloat("latitudAnterior", (float)location.getLatitude());
         editor.putFloat("LongitudAnterior", (float)location.getLongitude());
         editor.apply();
-        speed = location.getSpeed();
+        speed = location.getSpeed() * 3.6F; // m/s -> km/h
         precision = location.getAccuracy();
         altitud = location.getAltitude();
         direccion = location.getBearing();
@@ -176,7 +177,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         latitud = Double.toString(location.getLatitude());
         longitud = Double.toString(location.getLongitude());
         nombre = sharedPreferences.getString("nombreRuta", "sinNombre");
-        final String URI =  "?s=" + speed + "&p=" + precision + "&a=" + altitud + "&r=" + direccion + "&l=" + latitud + "&i=" + telefonoId + "&o=" + longitud + "&t=" + this.distanciaTotal + "&d=" + this.disulti + "&n=" + nombre + "&f=" + fechaGPS;
+        final String URI =  "?s=" + speed + "&p=" + precision + "&a=" + altitud + "&r=" + direccion + "&l=" + latitud + "&i=" + telefonoId + "&o=" + longitud + "&d=" + this.disulti + "&n=" + nombre + "&f=" + fechaGPS;
 
         Thread thread = new Thread(new Runnable() {
 
@@ -260,7 +261,7 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
             }
         });
         thread.start();
-        this.stopSelf();
+
     }
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
@@ -286,12 +287,15 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
         Editor editor = sharedPreferences.edit();
         //bloquear nombre si esta encendido hasta que regrese el internet.
         editor.putInt("cnointernet", sharedPreferences.getInt("cnointernet", 0)+1);
+        editor.apply();
+
+        Intent intent1 = new Intent();
+        intent1.setAction("test.UPDATE");
+        getBaseContext().sendBroadcast(intent1);
+
         if (sharedPreferences.getBoolean("activo",false) && !sharedPreferences.getBoolean("bloquearNombre",false)){
             editor.putBoolean("bloquearNombre", true);
             editor.apply();
-            Intent intent2 = new Intent();
-            intent2.setAction("test.UPDATE");
-            getBaseContext().sendBroadcast(intent2);
 
         }
 
@@ -312,7 +316,6 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                 track.put("l", latitud);
                 track.put("i", telefonoId);
                 track.put("o", longitud);
-                track.put("t", distanciaTotal);
                 track.put("d", disulti);
                 track.put("n", nombre);
                 track.put("f", fechaGPS);
@@ -336,7 +339,6 @@ public class servicio extends Service implements ConnectionCallbacks, OnConnecti
                 track.put("l", latitud);
                 track.put("i", telefonoId);
                 track.put("o", longitud);
-                track.put("t", distanciaTotal);
                 track.put("d", disulti);
                 track.put("n", nombre);
                 track.put("f", fechaGPS);

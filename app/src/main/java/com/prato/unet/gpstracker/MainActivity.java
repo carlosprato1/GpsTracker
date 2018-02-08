@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
             Editor editor = sharedPreferences.edit();
             cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
+            cnointernet.setText(String.valueOf(sharedPreferences.getInt("cnointernet", 0)));
             //limpiar
             alerta1.setText("");
             alerta.setText("");
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
                    Editor editor = sharedPreferences.edit();
                    editor.putInt("DisCorta", 0);
                    editor.putInt("reportado", 0);
+                   editor.putInt("cnointernet", 0);
                    editor.apply();
                    creportado.setText(String.valueOf(sharedPreferences.getInt("reportado", 0)));
                    cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
@@ -154,9 +156,7 @@ public class MainActivity extends AppCompatActivity {
     protected void BotonEmpezar() {
         SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
         Editor editor = sharedPreferences.edit();
-        //editor.putInt("DisCorta", 0);
-        //editor.putInt("reportado", 0);
-        //editor.putFloat("distanciaTotal", 0.0F);
+
         alerta1.setText("");
        String NombreActual= nombreMovil.getText().toString().trim();
 

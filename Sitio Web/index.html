@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 	<title>Android GPS Tracker</title>
-	<link rel="stylesheet" href="vistas/css/bootstrap.min.css">
+	<link rel="stylesheet" href="vistas/Bootstrap/bootstrap.min.css">
 	<link rel="stylesheet" href="vistas/css/estilos.css">
 
 </head>
@@ -12,8 +12,8 @@
 <body>
 	<header>
 		<div class="container-fluid">
-			<h3>Android - Tk-103 Tracker <small>Pagina de prueba</small></h3>
-			<h5>1. Ingresa a "Terminales/Android" luego agrega el nombre del Dispositivo<br>2. Descarga la aplicacion: <a href="https://mega.nz/#!clRhDTLJ!FKPaLiHrOzA769AyDFt1r3Y_aR01v4pFYHJzWOe2rfY">Descargar</a><br>3. Instala la aplicacion en el Android<br>4. Activa el GPS<br>5. Entra a la aplicacion y escribe el nombre del dispositivo<br>5. Prueba!! <small>recuerda que el telefono debe tener conexion a internet y encender el GPS aumentara el consumo de la bateria <small></h5>
+			<h3>Android<small>  -  Sitio Web en Desarrollo</small></h3>
+			<h5>1. Ingresa a Terminales y Crear un nombre<br>2. Descarga la aplicacion: <a href="https://mega.nz/#!91wQ2IJA!JhSGNNZpSznyKOUBB1NJaFtO2wrZJvnWvNwFRZwaoO8">Descargar</a><br>3. Instala la aplicacion<br>4. En la aplicacion escribe el nombre del Dispositivo<br>5. Enciende</h5>
 
 			<nav class="navbar navbar-default">
   <div class="container-fluid">
@@ -27,18 +27,31 @@
       <a class="navbar-brand" href="index.html">Mapa</a>
     </div>
 
+
+
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-       
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Terminales <span class="caret"></span></a>
+
+        <li class="nav-item">
+           <a class="nav-link" href="vistas/terAndroid.php" target="enlace">Terminales</a>
+        </li>
+    
+           <li class="dropdown closed">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true">Cronograma<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
-            <li><a href="vistas/terAndroid.php" target="enlace">Android</a></li>
-            <li><a href="vistas/terTk103.php" target="enlace">Tk-103 - Beta</a></li>
+            <li><a href="vistas/agregarEvento.php" target="enlace">Agregar Eventos</a></li>
+            <li><a href="vistas/listarEvento.php" target="enlace">Listar Eventos</a></li>
+            <li><a href="vistas/listarRecorridos.php" target="enlace">Recorridos</a></li>
           </ul>
         </li>
+
       </ul>
-   
+
+
+
+
+
+
     </div>
   </div>
 </nav>
@@ -63,24 +76,26 @@
 
       <footer>
 		<div class="container">
-			<h3>carlos prato <small>telefono:0426-3957066</small></h3>
-			<h4>ultima actualizacion: 11-Agosto-2017</h4>
+			<h3>Carlos Prato<small> - 0426-3957066</small></h3>
+			<h4>ultima Modificacion: Febreo - 2018</h4>
 		</div>
 	</footer>  
 
 
 
-<script src="vistas/js/jquery-3.1.1.min.js"></script>
-<script src="vistas/js/bootstrap.min.js"></script>
+<script src="vistas/Bootstrap/jquery-3.1.1.min.js"></script>
+<script src="vistas/Bootstrap/bootstrap.min.js"></script>
 		
 
 </body>
 
 
 <script language="JavaScript">
-//Ajusta el tamaño del iframe para evitar el scroll
+//Ajusta el tamaño del iframe para evitar el scroll (errores)
+//Se Queria ajustar el height(altura) del index.html de acuerdo a la altura del iframe para evitar scroll
 function autofitIframe(id){
-  var ajuste = 0;
+
+  /*var ajuste = 0;
   id.style.height = "600px";
   if (!window.opera && document.all && document.getElementById){
 
@@ -95,7 +110,7 @@ function autofitIframe(id){
     ajuste = parseInt(ajuste,10);
     id.style.height=id.contentDocument.body.scrollHeight+ajuste+"px";
   }
-
+*/
 
 }
 </script>

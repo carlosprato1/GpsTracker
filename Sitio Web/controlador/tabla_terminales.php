@@ -1,28 +1,14 @@
 <?php
 
-
 require("../clases/utilidades.class.php");
-require("../clases/tabla_terminales.class.php");
 require("../clases/terminalesAndroid.class.php");
 
 $objUtilidades = new utilidades;
-$objTerminales = new tabla_terminales;
 $objAndroid = new terminalesAndroid;
 
 $con=$objUtilidades->conexion();
 
 	switch($_REQUEST["accion"]){
-		
-		case 'buscar_terminales':
-			$respuesta=$objTerminales->buscar_terminales($con); 
-		break;	
-	
-		case 'agregar_terminal':
-			$respuesta=$objTerminales->agregar_terminal($con,$_POST["imei"],$_POST["nombre_t"],$_POST["telefono"]);
-		break;
-		case 'agregar_terminal':
-			$respuesta=$objTerminales->agregar_terminal($con,$_POST["imei"],$_POST["nombre_t"],$_POST["telefono"]);
-		break;
 
 		case 'buscar_android':
 			$respuesta=$objAndroid->buscar_android($con);

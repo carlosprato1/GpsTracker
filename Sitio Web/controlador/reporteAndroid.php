@@ -8,8 +8,6 @@
  //$longitud      = (float)str_replace(",", ".", $longitude);    
  $speed          = isset($_GET['s']) ? $_GET['s'] : 0;
  $direccion      = isset($_GET['r']) ? $_GET['r'] : 0;
- $distotal       = isset($_GET['t']) ? $_GET['t'] : '0';
- //$distotal       = (float)str_replace(",", ".", $distotal);
  $disUlt       = isset($_GET['d']) ? $_GET['d'] : '0';
  $fecha           = isset($_GET['f']) ? $_GET['f'] : '0000-00-00 00:00:00';
  //$fecha           = urldecode($fecha);
@@ -41,7 +39,7 @@ elseif($respuesta == "invalido"){
 	echo "invalido";
 }
 else{
-	$objandroidEscribir->addReporte($con,$respuesta,$latitud,$longitud,$altitud,$fecha,$speed,$direccion,$disUlt,$distotal,$precision);
+	$objandroidEscribir->addReporte($con,$respuesta,$latitud,$longitud,$altitud,$fecha,$speed,$direccion,$disUlt,$precision);
 	echo "reportado";
 }
 

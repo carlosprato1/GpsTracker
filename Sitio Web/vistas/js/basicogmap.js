@@ -1,4 +1,11 @@
-//variables globales
+//*********variables globales***////////////////////
+  var fechaActual = moment().format();
+  var key;
+  var max;
+  var pause = false;
+  var json_rReanudar
+  var ID_AReanudar
+  var maxReanudar
   var map; //se guarda el mapa.
   var markers = [];//este vector simplemente es para volver a aparecer los puntos en un futuro.
   var json;
@@ -7,7 +14,7 @@
   var ya_infowindow = null;
   var direccion = 0;
   var speed = 0;
-
+//////****************/////////////////////
 function initMap() {
 
      var a = {lat: 7.78706, lng: -72.21060};
@@ -75,10 +82,10 @@ function initMap() {
 
 function addMarker(coordenada,info){
 
-  if(speed == "0"){tipo = "speedCero";  }
+  if(speed == "0.000"){tipo = "speedCero";  }
   else{
-    if(direccion == null){tipo = "speedCero";}
-    if((direccion >=0 && direccion<=11.2) || (direccion > 348.7 && direccion<360)){tipo = "dir0";}
+    if(direccion == null || direccion == 0.0 ){tipo = "speedCero";}
+    if((direccion >0 && direccion<=11.2) || (direccion > 348.7 && direccion<360)){tipo = "dir0";}
     if(direccion > 11.2 && direccion<=33.7){tipo = "dir22";}
     if(direccion > 33.7 && direccion<=56.2){tipo = "dir45";}
     if(direccion > 56.2 && direccion<=78.7){tipo = "dir67";}
@@ -125,8 +132,7 @@ function recorrer_markers(map) {
 }
 
 function ultimo_todos(band){
-  recorrer_markers(null);//limpiar mapa
-  markers = [];//borrar vector
+ stop();
 
   $.ajax({
   async:  true, 
@@ -135,7 +141,11 @@ function ultimo_todos(band){
     data: "&accion=ultimo_todos",
   dataType:"html",
     success: function(data){ 
+      //alert(data);
      json  = eval("(" + data + ")");  
+
+    if (json == "nada") {return}
+
      for (var key in json) {
    
         var coor =  {lat: parseFloat(json[key].latitud), lng: parseFloat(json[key].longitud)};
@@ -143,13 +153,7 @@ function ultimo_todos(band){
     //el ID_T de los tk los puede tomar como ID_A.
 
         titulo     = $("#"+json[key].ID_A).text();
-        if (json[key].ID_A == null ){
-          titulo     = $("#"+json[key].ID_T).text();
-        }
 
-        if(json[key].speed=="1" || json[key].speed =="2"){
-          json[key].speed = "0";
-        }
         var info = "<h4>"+titulo+"</h4>"+"Fecha: "+json[key].TimeGPS+"<br>Velocidad: "+json[key].speed+" m/s<br>Altitud: "+json[key].altitud+" m"+"<br>Distancia: "+json[key].disUlt+" m"+"<br>Precision: "+json[key].error;
         if(json[key].altitud==null){
           info = info.replace("<br>Altitud: undefined m","");
@@ -164,102 +168,37 @@ function ultimo_todos(band){
         speed = json[key].speed;
            addMarker(coor,info);
          
+     }//for
 
-     }
     }//succes
   }); //ajax
 
 }//function
 
 //para luego: actualizar el tiempo real cada 1min.
-//para luego: en el caso de ver que se actualice un solo terminal, llenar una variable global "ID_T" en escoger() para que
-//ultimos_todos() sepa que se estaba mostrando ese terminal, buscarlo y colocarlo.
-//para luego: traer del boton una bandera para que si se una ignorar 1 terminal y mostrarlos todos.
-//para luego: crear linea con flechas en recorridos
-//para luego:traer speed otros datos que se desea saber.
-function escoger(ID_T){
-    for (var key in json) { 
-      if (parseInt(json[key].ID_T)==ID_T){
-           recorrer_markers(null);
-           markers = [];
-           var coor =  {lat: parseFloat(json[key].latitud), lng: parseFloat(json[key].longitud)};
-           titulo     = $("#"+json[key].ID_T).text();
-           var info = "<h4>"+titulo+"</h4>"+json[key].TimeGPS;
-      
-           addMarker(coor,info);
-       
-      }  
-  }
- 
-}//escoger
 
-function recorridoTk(ID_T){
-
-hora1 = $("#hora1"+ID_T).val();
-hora2 = $("#hora2"+ID_T).val();
-date  = $("#date"+ID_T).val();
-
-if (date==""){bootbox.alert({
-              message: "Ingrese la Fecha",
-              size: 'small'});
-              return}
-if (hora2=="0") {hora2="23"}
-
-if (parseInt(hora1) >= parseInt(hora2)){bootbox.alert({
-                       message: "Hora 1 tiene que ser menor a hora 2",
-                       size: 'small'});
-                       return}
-
-recorrer_markers(null);//limpiar mapa
-markers = [];//borrar vector
-
-  $.ajax({
-  async:  true, 
-    type: "POST",
-    url: "../controlador/reportes.php",
-    data: "&accion=recorrido&h1="+hora1+"&h2="+hora2+"&date="+date+"&ID_T="+ID_T+"&tipo=1",
-  dataType:"html",
-    success: function(data){ 
-alert(data);
-     json_r  = eval("(" + data + ")");
-     if (json_r == "nada") {bootbox.alert({
-                            message: "No Hay Recorridos",
-                            size: 'small'});
-                            return}
- var key=0;
- var max = json_r.length;  
- 
- punto_timer(json_r,key,ID_T,max);
-
-    }//succes
-  }); //ajax
-}
-
+//hora 1: 19:00:00  hora2: 00:00:00  date:25/01/2018
 function recorridoAndroid(ID_A){
 
-hora1 = $("#ahora1"+ID_A).val();
-hora2 = $("#ahora2"+ID_A).val();
-date  = $("#adate"+ID_A).val();
 
-if (date==""){bootbox.alert({
-              message: "Ingrese la Fecha",
-              size: 'small'});
-              return}
-if (hora2=="0") {hora2="23"}
 
-if (parseInt(hora1) >= parseInt(hora2)){bootbox.alert({
-                       message: "Hora 1 tiene que ser menor a hora 2",
+hora1 = $("#ahora1"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,2);
+hora2 = $("#ahora2"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,2);
+date  = $("#adate"+ID_A).data("DateTimePicker").date().format();
+
+
+if (parseInt(hora2) >= parseInt(hora1)){bootbox.alert({
+                       message: "Hora 1 debe ser mayor a hora 2",
                        size: 'small'});
                        return}
 
-recorrer_markers(null);//limpiar mapa
-markers = [];//borrar vector
+
 
   $.ajax({
   async:  true, 
     type: "POST",
     url: "../controlador/reportes.php",
-    data: "&accion=recorrido&h1="+hora1+"&h2="+hora2+"&date="+date+"&ID_T="+ID_A+"&tipo=2",
+    data: "&accion=recorrido&h1="+hora2+"&h2="+hora1+"&date="+date+"&ID_A="+ID_A,
   dataType:"html",
     success: function(data){ 
  
@@ -268,24 +207,29 @@ markers = [];//borrar vector
                             message: "No Hay Recorridos",
                             size: 'small'});
                             return}
- var key=0;
- var max = json_r.length;  
- 
- punto_timerAndroid(json_r,key,ID_A,max);
+
+
+
+
+    if (key<max){return}  
+     pause = false;                    
+ key=0;
+ max = json_r.length;  
+recorrer_markers(null);//limpiar mapa
+markers = [];//borrar vector
+ punto_timerAndroid(json_r,ID_A);
 
     }//succes
   }); //ajax
 }
 
-function punto_timerAndroid(json_r,key,ID_T,max){//cree esta funcion solo por no haber cambiado la palabra longuitud del TK
+function punto_timerAndroid(json_r,ID_A){
   var coor =  {lat: parseFloat(json_r[key].latitud), lng: parseFloat(json_r[key].longitud)};
  
   var info = "<h4>"+titulo+"</h4>"+json_r[key].TimeGPS;
 
-        titulo     = $("#"+ID_T).text();
-        if(json_r[key].speed=="1" || json_r[key].speed =="2"){
-          json_r[key].speed = "0";
-        }
+        titulo     = $("#"+ID_A).text();
+     
         var info = "<h4>"+titulo+"</h4>"+"Fecha: "+json_r[key].TimeGPS+"<br>Velocidad: "+json_r[key].speed+" m/s<br>Altitud: "+json_r[key].altitud+" m"+"<br>Distancia: "+json_r[key].disUlt+" m"+"<br>Precision: "+json_r[key].error;
         if(json_r[key].altitud==null){
           info = info.replace("<br>Altitud: undefined m","");
@@ -300,24 +244,73 @@ function punto_timerAndroid(json_r,key,ID_T,max){//cree esta funcion solo por no
         speed = json_r[key].speed;
         addMarker(coor,info);
 
- setTimeout(function() {
-    key++;
-    if (key >= max) {return}
-    punto_timerAndroid(json_r,key,ID_T,max);
-  },1000);
-}
-
-
-
-function punto_timer(json_r,key,ID_T,max){
-  var coor =  {lat: parseFloat(json_r[key].latitud), lng: parseFloat(json_r[key].longitud)};
-  titulo   = $("#"+ID_T).text();
-  var info = "<h4>"+titulo+"</h4>"+json_r[key].TimeGPS;
-  addMarker(coor,info);
 
  setTimeout(function() {
     key++;
     if (key >= max) {return}
-    punto_timer(json_r,key,ID_T,max);
+
+    if (pause) {
+   json_rReanudar = json_r
+   ID_AReanudar   = ID_A 
+   maxReanudar    = max
+      return}
+
+    punto_timerAndroid(json_r,ID_A);
   },1000);
 }
+
+ function pause1(){
+
+    pause = !pause;
+    if (!pause){punto_timerAndroid(json_rReanudar,ID_AReanudar,maxReanudar);}
+  }
+
+function stop(){
+  key = max;
+  recorrer_markers(null);//limpiar mapa
+  markers = [];//borrar vector
+}
+
+function calendar(ID_A){
+
+
+    $(function () {
+         $("#adate"+ID_A).datetimepicker({             
+             format: 'DD/MM/YYYY',
+             defaultDate: fechaActual
+          });
+     });
+
+    $(function () {
+          $("#ahora1"+ID_A).datetimepicker({             
+             format : 'hh a',
+             defaultDate: fechaActual
+          });
+    });
+
+    $(function () {
+          $("#ahora2"+ID_A).datetimepicker({             
+             format: 'hh a',
+             defaultDate: '2018-01-21 00:00:00'
+          });
+    });
+//*******************************************************************************
+//Avento al cambiar la fecha del Date, se queria deshabilitar dias o traer una marca
+ // para saber automaticamente si hay recorridos en el dia seleccionado.
+    /*$("#adate"+ID_A).on('dp.change', function(e){ 
+        $.ajax({
+         async:  true, 
+         type: "POST",
+         url: "../controlador/reportes.php",
+         data: "&accion=diasActivos",
+         dataType:"html",
+           success: function(data){ 
+           //alert(data);
+           //json  = eval("(" + data + ")"); 
+
+           }//succes
+        }); //ajax
+    })*/
+     //disabledDates: [moment("12/25/2013"),moment("12/25/2013")]
+///////////*******************************************************************
+ }

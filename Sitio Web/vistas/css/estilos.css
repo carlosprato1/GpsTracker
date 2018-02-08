@@ -42,3 +42,6 @@ color:#FFFFFF;
         height: 400px;
     }
 }
+
+.top-buffer { margin-top:1%; }
+.top-cero { margin-top:0%; }
