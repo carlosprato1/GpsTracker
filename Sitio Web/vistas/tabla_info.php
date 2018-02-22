@@ -10,8 +10,11 @@ $con=$objUtilities->conexion();
 
 
 <!DOCTYPE html>
+<html lang="es">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+ 
 <title>dispositivos conectados</title>
 <link rel="stylesheet" href="Bootstrap/bootstrap.min.css">
 <script src="Bootstrap/jquery-3.1.1.min.js"></script>
@@ -30,6 +33,13 @@ $con=$objUtilities->conexion();
         height:50vh;
         width: 100%;
        }
+       #emulacion {
+        background-color: #F3F3F3;
+        border:2px solid #DEDEDE;
+        border-radius: 10px;
+        margin: 0.2%;
+       }
+
     </style>
 </head>
 
@@ -42,18 +52,34 @@ $con=$objUtilities->conexion();
     <div id="map"></div>
     
 	      <div class='row'>
+
           <div  class='col-xs-4 col-sm-3'>
             <a class="btn btn-success btn-sm" onClick="ultimo_todos(true)">Ult. Posicion</a>
           </div>
+ 
+          <div class="col-xs-6 col-sm-5" id="emulacion">
 
-           <div class='col-xs-1 col-sm-1'>
-            <span class='glyphicon glyphicon-pause' style='color:#DAA836' onClick='pause1()'></span>
+                 <div class='col-xs-1 col-sm-1'>
+                  <span class='glyphicon glyphicon-pause' style='color:#DAA836' onClick='pause1()'></span>
+                 </div>
+              
+      
+                 <div class='col-xs-1 col-sm-1'>
+                   <span class='glyphicon glyphicon-stop' style='color:#E13E1B' onClick='stop()'></span>
+                 </div>
+
+                 <div class='col-xs-6 col-sm-4 col-md-3'>
+                   <input type="range" name="Velocidad" min="0" max="10">
+                 </div>
+                 <div class='col-xs-1 col-sm-1'>
+                   <span id="estado"></span>
+                 </div>
 
           </div>
-          <div class='col-xs-1 col-sm-1'>
-            <span class='glyphicon glyphicon-stop' style='color:#E13E1B' onClick='stop()'></span>
-          </div>
+
         </div>  
+           <script type="text/javascript">range()</script>
+     
 
           
      

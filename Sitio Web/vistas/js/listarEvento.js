@@ -10,7 +10,7 @@ function cambiarFecha(boton){
   }
   fechaActual = nuevaFecha;
 
-$("#date").data("DateTimePicker").date(nuevaFecha);
+$("#date").data("DateTimePicker").date(fechaActual);
 
 
 
@@ -29,13 +29,15 @@ function calendar(){
 
 
 $("#date").on("dp.change", function (e) {
-   $("#roca").html( "");
-   var fechaAux = moment(fechaActual, 'YYYY-MM-DD hh:mm:ss').format('YYYY-MM-DD');
+
 
   nocambie2_seguidos++;
 if (nocambie2_seguidos != 1) { 
 
-  
+$("#roca").html( "");
+fechaActual = e.date;
+var fechaAux = moment(e.date, 'YYYY-MM-DD hh:mm:ss').format('YYYY-MM-DD');
+
        $.ajax({
          async:  true, 
          type: "POST",
@@ -43,7 +45,6 @@ if (nocambie2_seguidos != 1) {
          data: "&accion=consulta_listar_evento&fecha="+fechaAux,
          dataType:"html",
            success: function(data){ 
-            
 
           json  = eval("(" + data + ")");
           if (json == "nada") {
@@ -57,7 +58,7 @@ if (nocambie2_seguidos != 1) {
                if (json[key].fky_des != last){
                 var id = key;
 
-                 $("#roca").append( "<div class='row' id='descripcion'><div class='col-xs-12 col-sm-12' id='arena"+id+"'><br><h4>"+json[key].descri+"</h4></div></div>");
+                 $("#roca").append( "<div class='row' id='descripcion'><div class='col-xs-11 col-sm-11' id='arena"+id+"'><br><h4><a href='agregarEvento.php?editFecha="+fechaAux+"&cod_des="+json[key].fky_des+"' style='color:#043651'>"+json[key].descri+"</a> </h4></div></div>");
                }
                var docehoras = moment(json[key].tiempo, 'YYYY-MM-DD HH:mm:ss').format('h:mm a');
 
@@ -66,9 +67,15 @@ if (nocambie2_seguidos != 1) {
                last = json[key].fky_des;
              }
 
+             if (last != 678) {
+         $("#roca").append( "<button type='button' class='btn btn-secondary' onClick='copiarSiguiente("+ '"' +fechaAux+ '"' +")' style='margin-top: 4%;'>Copiar para el dia siguiente</button>");
+         $("#roca").append( "<br><button type='button' class='btn btn-secondary' onClick='copiarPara("+ '"' +fechaAux+ '"' +")' style='margin-top: 4%;'>Copiar para el dia ...</button>");
+             }
+
 
            }//succes
         }); //ajax
+
 
 }
      
@@ -78,6 +85,48 @@ if (nocambie2_seguidos != 1) {
 
 
 }
+//no colocare el remove por fila en listarEvento
+function copiarSiguiente(fechaCopiar){
+
+         $.ajax({
+         async:  true, 
+         type: "POST",
+         url: "../controlador/cronograma.php",
+         data: "&accion=copiarASiguiente&fecha="+fechaCopiar,
+         dataType:"html",
+           success: function(data){ 
+
+       
+//alert(data);
+
+           }//succes
+        }); //ajax
+
+ 
+}
+function copiarPara (fechaCopiar){
+   
+var fechaEscogida = prompt("Por favor Introduce la Fecha (Ej. dd-mm-yyyy)", "");
+    if (fechaEscogida == null || fechaEscogida == "" || fechaEscogida.length != 10) {
+
+       return;
+    } else {
+     
+  $.ajax({
+         async:  true, 
+         type: "POST",
+         url: "../controlador/cronograma.php",
+         data: "&accion=copiarASiguiente&fecha="+fechaCopiar+"&escogida="+fechaEscogida,
+         dataType:"html",
+           success: function(data){ 
+
+           }//succes
+        }); //ajax
+
+    }
+
+ 
 
 
 
+}

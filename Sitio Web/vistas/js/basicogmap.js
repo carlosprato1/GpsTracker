@@ -1,3 +1,5 @@
+//problema con android: vervariables kay y max y la condicion en linea225
+//ver si almenos grafica el ultimos todos
 //*********variables globales***////////////////////
   var fechaActual = moment().format();
   var key;
@@ -14,6 +16,7 @@
   var ya_infowindow = null;
   var direccion = 0;
   var speed = 0;
+  var velocidad_emulacion=1000;
 //////****************/////////////////////
 function initMap() {
 
@@ -24,8 +27,8 @@ function initMap() {
   });
 
 }//initmap
-//*************Colocar la Direccion IP del Servidor***************
- var baseimagen= 'http://www.pratowebhoster.hol.es/vistas/imagenes/';
+//*************Colocar la Direccion del Servidor***************
+ var baseimagen= 'http://localhost/interfaz/vistas/imagenes/';
         var icons = {
           speedCero: {
             icon: baseimagen + 'circuloTrans.png'
@@ -153,8 +156,10 @@ function ultimo_todos(band){
     //el ID_T de los tk los puede tomar como ID_A.
 
         titulo     = $("#"+json[key].ID_A).text();
+        var fechaTimeAux = moment(json[key].TimeGPS, 'YYYY-MM-DD HH:mm:ss').format('DD-MM-YYYY hh:mm:ss a');
 
-        var info = "<h4>"+titulo+"</h4>"+"Fecha: "+json[key].TimeGPS+"<br>Velocidad: "+json[key].speed+" m/s<br>Altitud: "+json[key].altitud+" m"+"<br>Distancia: "+json[key].disUlt+" m"+"<br>Precision: "+json[key].error;
+
+        var info = "<h4>"+titulo+"</h4>"+"Fecha: "+fechaTimeAux+"<br>Velocidad: "+json[key].speed+" km/h<br>Altitud: "+json[key].altitud+" m"+"<br>Distancia: "+json[key].disUlt+" m"+"<br>Precision: "+json[key].error+" m";
         if(json[key].altitud==null){
           info = info.replace("<br>Altitud: undefined m","");
         }
@@ -175,19 +180,25 @@ function ultimo_todos(band){
 
 }//function
 
-//para luego: actualizar el tiempo real cada 1min.
+
 
 //hora 1: 19:00:00  hora2: 00:00:00  date:25/01/2018
 function recorridoAndroid(ID_A){
 
 
 
-hora1 = $("#ahora1"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,2);
-hora2 = $("#ahora2"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,2);
+hora1 = $("#ahora1"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,5);
+hora2 = $("#ahora2"+ID_A).data("DateTimePicker").date().format("HH:mm:ss").substr(0,5);
+
+hora1Aux = hora1.replace(":", "");
+hora2Aux = hora2.replace(":", "");
+
+
+
 date  = $("#adate"+ID_A).data("DateTimePicker").date().format();
 
 
-if (parseInt(hora2) >= parseInt(hora1)){bootbox.alert({
+if (parseInt(hora2Aux) >= parseInt(hora1Aux)){bootbox.alert({
                        message: "Hora 1 debe ser mayor a hora 2",
                        size: 'small'});
                        return}
@@ -201,6 +212,7 @@ if (parseInt(hora2) >= parseInt(hora1)){bootbox.alert({
     data: "&accion=recorrido&h1="+hora2+"&h2="+hora1+"&date="+date+"&ID_A="+ID_A,
   dataType:"html",
     success: function(data){ 
+     // alert(data);
  
      json_r  = eval("(" + data + ")");
      if (json_r == "nada") {bootbox.alert({
@@ -212,11 +224,12 @@ if (parseInt(hora2) >= parseInt(hora1)){bootbox.alert({
 
 
     if (key<max){return}  
-     pause = false;                    
+ pause = false;                    
  key=0;
  max = json_r.length;  
 recorrer_markers(null);//limpiar mapa
 markers = [];//borrar vector
+
  punto_timerAndroid(json_r,ID_A);
 
     }//succes
@@ -224,22 +237,16 @@ markers = [];//borrar vector
 }
 
 function punto_timerAndroid(json_r,ID_A){
+
   var coor =  {lat: parseFloat(json_r[key].latitud), lng: parseFloat(json_r[key].longitud)};
  
-  var info = "<h4>"+titulo+"</h4>"+json_r[key].TimeGPS;
+  $("#estado").text("Emulando");
 
         titulo     = $("#"+ID_A).text();
+        var fechaTimeAux = moment(json_r[key].TimeGPS, 'YYYY-MM-DD HH:mm:ss').format('DD/MM/YYYY, h:mm:ss a');
      
-        var info = "<h4>"+titulo+"</h4>"+"Fecha: "+json_r[key].TimeGPS+"<br>Velocidad: "+json_r[key].speed+" m/s<br>Altitud: "+json_r[key].altitud+" m"+"<br>Distancia: "+json_r[key].disUlt+" m"+"<br>Precision: "+json_r[key].error;
-        if(json_r[key].altitud==null){
-          info = info.replace("<br>Altitud: undefined m","");
-        }
-        if(json_r[key].disUlt==null){
-          info = info.replace("<br>Distancia: undefined m","");
-        }
-        if(json_r[key].error==null){
-          info = info.replace("<br>Precision: undefined","");
-        }
+        var info = "<h4>"+titulo+"</h4>"+"Fecha: "+fechaTimeAux+"<br>Velocidad: "+json_r[key].speed+" km/h<br>Altitud: "+json_r[key].altitud+" m"+"<br>Distancia: "+json_r[key].disUlt+" m"+"<br>Precision: "+json_r[key].error+" m";
+  
         direccion = parseFloat(json_r[key].direccion);
         speed = json_r[key].speed;
         addMarker(coor,info);
@@ -247,7 +254,7 @@ function punto_timerAndroid(json_r,ID_A){
 
  setTimeout(function() {
     key++;
-    if (key >= max) {return}
+    if (key >= max) {$("#estado").text("Finalizo");return}
 
     if (pause) {
    json_rReanudar = json_r
@@ -256,16 +263,26 @@ function punto_timerAndroid(json_r,ID_A){
       return}
 
     punto_timerAndroid(json_r,ID_A);
-  },1000);
+  },velocidad_emulacion);
 }
 
  function pause1(){
-
+    $("#estado").text("Pausado");
     pause = !pause;
+
+    try {
+    if(json_rReanudar[key].latitud) {
+   
+      }
+    }catch(e){
+     $("#estado").text("");return;
+    }
+
     if (!pause){punto_timerAndroid(json_rReanudar,ID_AReanudar,maxReanudar);}
   }
 
 function stop(){
+   $("#estado").text("");
   key = max;
   recorrer_markers(null);//limpiar mapa
   markers = [];//borrar vector
@@ -283,14 +300,14 @@ function calendar(ID_A){
 
     $(function () {
           $("#ahora1"+ID_A).datetimepicker({             
-             format : 'hh a',
-             defaultDate: fechaActual
+             format : 'hh mm a',
+             defaultDate: '2018-01-21 23:59:00'
           });
     });
 
     $(function () {
           $("#ahora2"+ID_A).datetimepicker({             
-             format: 'hh a',
+             format: 'hh mm a',
              defaultDate: '2018-01-21 00:00:00'
           });
     });
@@ -314,3 +331,15 @@ function calendar(ID_A){
      //disabledDates: [moment("12/25/2013"),moment("12/25/2013")]
 ///////////*******************************************************************
  }
+
+function range(){
+     $(document).ready(function(){
+            $("[type=range]").change(function(){
+            var newval=$(this).val();
+            if (newval == 0) {velocidad_emulacion = 2200; return;}
+
+             velocidad_emulacion = (newval-10.6)/(-0.005);
+
+            });
+          });
+}

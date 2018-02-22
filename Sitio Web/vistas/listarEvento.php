@@ -70,10 +70,13 @@ $con=$objUtilities->conexion();
       </div> 
 
     <div id="roca"></div>
+
+
+          
     
       <!--    <div class='row' id="descripcion">
             <div class='col-xs-12 col-sm-12' id='arena'>
-               <br><h4>Ruta 2: Salida: UNET - LLegada: San Josecito.</h4>
+               <br><h4><a href = "www.google.com">Ruta 2: Salida: UNET - LLegada: San Josecito.</a></h4>
 
                <div class='col-xs-4 col-sm-2'>
                 <h5>Hora: 4:50pm</h5>

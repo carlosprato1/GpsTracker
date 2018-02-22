@@ -86,7 +86,6 @@ $vehiculo[] = $v4;
 
  $sqlaux1 = join(", ",$sqlaux);
  $sql = "INSERT INTO evento (fky_des,tiempo,vehiculo) VALUES ".$sqlaux1;
-
  $ok=mysqli_query($con,$sql);
 
 
@@ -126,10 +125,14 @@ $i=0;
 
 }
 
-function listarEvento($con,$fecha){
+function listarEvento($con,$fecha,$tipo){
 $i=0;
-
-$sql="SELECT evento.fky_des, evento.vehiculo, evento.tiempo, descripcion.descri FROM evento INNER JOIN descripcion ON evento.fky_des=descripcion.cod_des WHERE tiempo BETWEEN '$fecha 00:00:00' AND '$fecha 23:59:59'";
+ 
+ if ($tipo == "x") {
+ 	$sql="SELECT evento.fky_des, evento.vehiculo, evento.tiempo, descripcion.descri  FROM evento INNER JOIN descripcion ON evento.fky_des=descripcion.cod_des WHERE tiempo BETWEEN '$fecha 00:00:00' AND '$fecha 23:59:59'";
+ }else{
+ 	$sql="SELECT evento.fky_des, evento.vehiculo, evento.tiempo, descripcion.descri, descripcion.tipo  FROM evento INNER JOIN descripcion ON evento.fky_des=descripcion.cod_des WHERE tiempo BETWEEN '$fecha 00:00:00' AND '$fecha 23:59:59'";
+ }
 
 	  $ok=mysqli_query($con,$sql);
 
@@ -144,7 +147,55 @@ $sql="SELECT evento.fky_des, evento.vehiculo, evento.tiempo, descripcion.descri 
 
     echo $json;
 
+}//2018-02-14 04:05:00
+
+function copiarASiguiente($con,$fechaActual,$escogida){
+if ($escogida == 'x') {
+ $año = substr($fechaActual,2,2);
+ $mes = substr($fechaActual,5,2);
+ $dia = substr($fechaActual,8,2)+1;
+}else{
+ $año = substr($escogida,8,2);
+ $mes = substr($escogida,3,2);
+ $dia = substr($escogida,0,2);
+}
+
+//dd-mm-yyyy
+ $siguente = date("Y-m-d H:i:s", mktime(0,0,0,$mes,$dia,$año));
+
+
+	$sql1 = "SELECT tiempo, fky_des, vehiculo FROM evento WHERE tiempo BETWEEN '$fechaActual 00:00:00' AND '$fechaActual 23:59:59'";
+
+	 $ok=mysqli_query($con,$sql1);
+	
+
+ 	  while(($datos = mysqli_fetch_assoc($ok))>0){
+
+
+ $hora   = substr($datos['tiempo'],11,2);
+ $minuto = substr($datos['tiempo'],14,2);
+ 
+
+$siguente = date("Y-m-d H:i:s", mktime($hora,$minuto,0,$mes,$dia,$año)); 
+
+
+
+    	$sqlaux[]= "('$siguente','$datos[fky_des]','$datos[vehiculo]')";
+
+
+    }
+
+ $sqlaux1 = join(", ",$sqlaux);
+ $sql = "INSERT INTO evento (tiempo,fky_des,vehiculo) VALUES ".$sqlaux1;
+ $ok=mysqli_query($con,$sql);
+ //echo $sql;
+
 }
 
 
 }
+
+
+
+
+

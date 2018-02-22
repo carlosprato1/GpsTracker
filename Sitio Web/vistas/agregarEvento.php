@@ -1,5 +1,6 @@
 <?php
 
+
 require("../clases/cronograma.class.php");
 require("../clases/cronoUtilidades.class.php");
 
@@ -69,10 +70,11 @@ $con=$objUtilities->conexion();
         <div class='col-xs-6'>
   				       <div class='container'>
                      <div class='col-xs-12 col-sm-6' style='height:50px;'>
-                            <input type='text' class='form-control' id='date1' />
+                            <input type='text' class='form-control' id='picker'/>
                      </div>
                  </div>
         </div>
+
 
         <div class='col-xs-2'>
             <button type="button" class="btn btn-primary" onClick='cambiarFecha(2)'>></button>
@@ -89,6 +91,8 @@ $con=$objUtilities->conexion();
         <select class="form-control" id="select" onchange="traer_datos()" style='height:40px;'>
           <option value ='0'>[Seleccione Recorrido...]</option>
           <?php
+
+
           $ok=$objcronograma->buscarRecorridos($con);
           while(($datos = mysqli_fetch_assoc($ok))>0){ 
           echo "
@@ -134,9 +138,27 @@ $con=$objUtilities->conexion();
 
  </div>
 </div>		
-                    <script type='text/javascript'>
-                        calendar1();
-                    </script>
+                   
+<?php
+           
+          
+          if (isset($_GET["editFecha"])) {
+
+               $f   = $_GET["editFecha"];
+               $cod = $_GET["cod_des"];
+            
+           echo " <script type='text/javascript'>
+                        calendar1('$f',$cod);
+                    </script>";
+           
+          }else {
+            echo " <script type='text/javascript'>
+                        calendar1(0,0);
+                    </script>";
+
+          }
+?>
+
 
 
 </body>

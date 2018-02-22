@@ -9,19 +9,31 @@ function cambiarFecha(boton){
   }
   fechaActual = nuevaFecha;
 
-$("#date1").data("DateTimePicker").date(nuevaFecha);
+$("#picker").data("DateTimePicker").date(fechaActual);
+traer_datos();
 }
 
 
-function calendar1(){
+function calendar1(editFecha,cod_des){
+  if (editFecha != 0) {
+    fechaActual = editFecha;
+    $("#select").val(cod_des);
+    traer_datos();
+
+  }
 
 	 $(function () {
-         $("#date1").datetimepicker({             
+         $("#picker").datetimepicker({             
              format: 'DD/MM/YYYY',
              defaultDate: fechaActual
           });
      });
 
+
+$("#picker").on("dp.change", function (e) {
+  fechaActual =  e.date
+
+   });
 
 }
 
@@ -122,7 +134,8 @@ if (band6) {
     data: dataAux,
     dataType:"html",
     success: function(data){  
-alert(data);
+  if (data == "") {alert("Evento Guardado")}else[alert("Error")]
+
       }//succes
      }); //ajax
 
@@ -145,8 +158,9 @@ $( "#time" ).val("");
   
 
  var cod_des =  $("#select").val();
+ if (cod_des == 0) {return;}
  var fechaAux = moment(fechaActual, 'YYYY-MM-DD hh:mm:ss').format('YYYY-MM-DD');
-
+ 
     $.ajax({
     async:  true, 
     type: "POST",
@@ -179,3 +193,4 @@ $( "#time" ).val("");
 
 
 }
+

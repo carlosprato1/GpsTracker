@@ -54,8 +54,16 @@ function recorrido($con,$h1,$h2,$date_aux,$ID_T) {
  $año = substr($date_aux,2,2);
  $mes = substr($date_aux,5,2);
  $dia = substr($date_aux,8,2);
- $date1 = date("Y-m-d H:i:s", mktime($h1,0,0,$mes,$dia,$año));
- $date2 = date("Y-m-d H:i:s", mktime($h2,0,0,$mes,$dia,$año));
+
+ $m1 = substr($h1,3,2);
+ $m2 = substr($h2,3,2);
+ $h1 = substr($h1,0,2);
+ $h2 = substr($h2,0,2);
+
+ 
+ $date1 = date("Y-m-d H:i:s", mktime($h1,$m1,0,$mes,$dia,$año));
+ $date2 = date("Y-m-d H:i:s", mktime($h2,$m2,0,$mes,$dia,$año));
+
 
   $sql = "SELECT latitud,longitud,TimeGPS,speed,altitud,direccion,disUlt,error FROM areporte_".$ID_T." WHERE TimeGPS > '".$date1."' AND TimeGPS < '".$date2."'";
 

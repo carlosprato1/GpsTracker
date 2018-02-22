@@ -1,6 +1,4 @@
-function editar (cod_des){
 
-}
 
 function eliminar(cod_des){
 

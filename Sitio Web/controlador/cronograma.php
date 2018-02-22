@@ -47,7 +47,14 @@ $respuesta=$objcronograma->consultaEvento($con,$_POST["cod_des"],$_POST["fecha"]
 		$respuesta=$objcronograma->eliminarEvento($con,$_POST["cod_des"],$_POST["fecha"]);
 		break;
 		case 'consulta_listar_evento':
-		$respuesta=$objcronograma->listarEvento($con,$_POST["fecha"]);
+
+		    $tipo  =	isset($_POST["tipo"])  ? $_POST["tipo"]  : 'x';
+			$respuesta=$objcronograma->listarEvento($con,$_POST["fecha"],$tipo);
+		break;
+
+		case 'copiarASiguiente':
+		$escogida  =	isset($_POST["escogida"])  ? $_POST["escogida"]  : 'x';
+			$respuesta=$objcronograma->copiarASiguiente($con,$_POST["fecha"],$escogida);
 		break;
 
 }
