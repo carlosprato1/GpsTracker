@@ -32,8 +32,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "activity";
 
+    private static final String TAG = "activity";
 
     //private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Button boton;
@@ -54,10 +54,9 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public void onReceive(Context context, Intent intent1) {
-
-            response = intent1.getStringExtra("data");
-            SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs",Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("com.prato.unet.gpstracker.prefs", Context.MODE_PRIVATE);
             Editor editor = sharedPreferences.edit();
+            response = intent1.getStringExtra("data");
             cdcorta.setText(String.valueOf(sharedPreferences.getInt("DisCorta", 0)));
             cnointernet.setText(String.valueOf(sharedPreferences.getInt("cnointernet", 0)));
             //limpiar
@@ -83,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         }//Onreceiver
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
